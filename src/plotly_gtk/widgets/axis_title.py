@@ -24,9 +24,14 @@ class AxisTitle(Base):
         context = self.get_pango_context()
         tickfont = update_dict(plot.layout["font"], axis["tickfont"])
         tickfont = parse_font(tickfont)
-        font_extra = context.get_metrics(tickfont).get_height() / Pango.SCALE
+        metrics = context.get_metrics(tickfont)
+
+        self.label = Gtk.Label(label=axis["title"]["text"])
+        self.append(self.label)
 
         if axis_letter == "x":
+            font_extra = (metrics.get_ascent() + metrics.get_descent()) / Pango.SCALE
+
             orientation = "h"
             x = (axis["domain"][0] + axis["domain"][-1]) / 2
             y = axis["position"]
@@ -38,18 +43,31 @@ class AxisTitle(Base):
                 if axis["side"] == "bottom"
                 else -standoff - ticklen - font_extra
             )
-            self.angle = 0
+            angle = 0
         elif axis_letter == "y":
+            font_extra = 0
+            layout = Pango.Layout(context)
+            layout.set_font_description(tickfont)
+            for tick in axis["_ticktext"]:
+                layout.set_text(tick)
+                font_extra = max(layout.get_pixel_size()[0], font_extra)
+
             orientation = "v"
             x = axis["position"]
             y = (axis["domain"][0] + axis["domain"][-1]) / 2
             xanchor = "right" if axis["side"] == "left" else "left"
             yanchor = "middle"
+            _width = self.get_preferred_size()[-1].width
+            _height = self.get_preferred_size()[-1].height
+
+            x_size_error = (_height - _width) / 2
             xoffset = (
-                -standoff - ticklen if axis["side"] == "left" else standoff + ticklen
+                -standoff - ticklen - font_extra - x_size_error
+                if axis["side"] == "left"
+                else standoff + ticklen + font_extra + x_size_error
             )
             yoffset = 0
-            self.angle = 270 if axis["side"] == "left" else 90
+            angle = 270 if axis["side"] == "left" else 90
             self.set_orientation(Gtk.Orientation.VERTICAL)
         else:
             return
@@ -57,8 +75,7 @@ class AxisTitle(Base):
         self.spec = dict(
             x=x, xanchor=xanchor, xoffset=xoffset, y=y, yanchor=yanchor, yoffset=yoffset
         )
-        self.label = Gtk.Label(label=axis["title"]["text"])
-        self.append(self.label)
+        self.angle = angle
 
         font = axis["title"]["font"]
         defaults = plot.layout["font"]
@@ -68,16 +85,6 @@ class AxisTitle(Base):
         custom_css = Gtk.CssProvider()
         custom_css.load_from_string(
             f"""
-            .plotly-{axis_name}-title {{
-                border: 1px solid red;
-                padding: 0px;
-                margin: 0px;
-            }}
-            .plotly-{axis_name}-title label {{
-                border: 1px solid black;
-                padding: 0px;
-                margin: 0px;
-            }}
             .plotly-{axis_name}-title label {{
                 color: {font["color"]};
                 font-family: {font["family"]};
@@ -85,6 +92,12 @@ class AxisTitle(Base):
                 font-style: {font["style"]};
                 font-variant: {font["variant"]};
                 font-weight: {font["weight"]};
+            }}
+            .vertical-90-text {{
+                transform: rotate(90deg);
+            }}
+            .vertical-270-text {{
+                transform: rotate(270deg);
             }}
             """
         )
@@ -95,3 +108,5 @@ class AxisTitle(Base):
         )
 
         self.add_css_class(f"plotly-{axis_name}-title")
+        if angle in [90, 270]:
+            self.add_css_class(f"vertical-{angle}-text")

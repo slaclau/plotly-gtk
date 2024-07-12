@@ -9,11 +9,33 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gtk  # noqa: E402
 
 
-def get_test_figure(index):
-    if index == 1:
+def get_test_figure(reference):
+    if reference == "scatter_1":
+        fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
+    elif reference == "scatter_2":
         df = px.data.iris()
         fig = px.scatter(df, x="sepal_width", y="sepal_length")
-        return fig
+    elif reference == "scatter_size_color_column":
+        df = px.data.iris()
+        fig = px.scatter(
+            df,
+            x="sepal_width",
+            y="sepal_length",
+            color="species",
+            size="petal_length",
+            hover_data=["petal_width"],
+        )
+    elif reference == "scatter_facetting":
+        df = px.data.tips()
+        fig = px.scatter(
+            df,
+            x="total_bill",
+            y="tip",
+            color="smoker",
+            facet_col="sex",
+            facet_row="time",
+        )
+    return fig
 
 
 def test(app):
@@ -21,7 +43,9 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure(1)
+    fig = get_test_figure("scatter_2")
+    print(fig)
+    # print(fig["layout"]["template"])
 
     webview = FigureWebView(fig)
     webview.set_hexpand(True)

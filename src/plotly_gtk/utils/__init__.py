@@ -8,6 +8,7 @@ from gi.repository import Gdk, Pango, PangoCairo
 
 
 def update_dict(d, u):
+    d = dict(d)
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
             d[k] = update_dict(d.get(k, {}), v)

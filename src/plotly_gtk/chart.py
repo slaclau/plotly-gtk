@@ -6,12 +6,7 @@ import numpy as np
 import pandas as pd
 from plotly import graph_objects as go
 
-from plotly_gtk.utils import (
-    parse_color,
-    parse_font,
-    round_sf,
-    update_dict,
-)
+from plotly_gtk.utils import parse_color, parse_font, round_sf, update_dict
 from plotly_gtk.utils.ticks import Ticks
 from plotly_gtk.widgets import *
 
@@ -19,36 +14,19 @@ gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, PangoCairo  # noqa: E402
 
+DEBUG = False
+
 
 class _PlotlyGtk(Gtk.DrawingArea):
     def __init__(self, fig: dict):
         super().__init__()
         self.data = fig["data"]
-        for plot in self.data:
-            plot["x"] = [
-                (
-                    x.replace(tzinfo=timezone.utc).timestamp()
-                    if isinstance(x, datetime.datetime)
-                    else x
-                )
-                for x in plot["x"]
-            ]
-
         self.layout = fig["layout"]
 
         self.set_draw_func(self.on_draw)
 
     def update(self, fig):
         self.data = fig["data"]
-        for plot in self.data:
-            plot["x"] = [
-                (
-                    x.replace(tzinfo=timezone.utc).timestamp()
-                    if isinstance(x, datetime.datetime)
-                    else x
-                )
-                for x in plot["x"]
-            ]
         self.layout = fig["layout"]
         self.queue_draw()
 
@@ -69,35 +47,79 @@ class _PlotlyGtk(Gtk.DrawingArea):
         context.rectangle(0, 0, width, height)
         context.fill()
 
+        if DEBUG:
+            context.set_source_rgb(*parse_color("pink"))
+            context.rectangle(
+                self.layout["_margin"]["l"],
+                self.layout["_margin"]["t"],
+                width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"],
+                height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"],
+            )
+            context.fill()
+
+        xaxes = [k for k in self.layout if "xaxis" in k]
+        yaxes = [k for k in self.layout if "yaxis" in k]
+
         context.set_source_rgb(*parse_color(self.layout["plot_bgcolor"]))
-        context.rectangle(
-            self.layout["_margin"]["l"],
-            self.layout["_margin"]["t"],
-            width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"],
-            height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"],
+        cartesian_subplots = {
+            (
+                xaxis,
+                self.layout[xaxis]["anchor"][0]
+                + "axis"
+                + self.layout[xaxis]["anchor"][1:],
+            )
+            for xaxis in xaxes
+        } | {
+            (
+                self.layout[yaxis]["anchor"][0]
+                + "axis"
+                + self.layout[yaxis]["anchor"][1:],
+                yaxis,
+            )
+            for yaxis in yaxes
+        }
+        paper_width = width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
+        paper_height = (
+            height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]
         )
-        context.fill()
+        for xaxis, yaxis in cartesian_subplots:
+            x = self.layout[xaxis]["_range"]
+            y = self.layout[yaxis]["_range"]
+            x_pos, y_pos = self.calc_pos(x, y, width, height, xaxis, yaxis)
+            context.rectangle(
+                x_pos[0], y_pos[0], x_pos[-1] - x_pos[0], y_pos[-1] - y_pos[0]
+            )
+            context.fill()
 
     def draw_grid(self, context, width, height):
-        self.draw_gridlines(context, width, height, "xaxis")
-        self.draw_gridlines(context, width, height, "yaxis")
+        axes = [k for k in self.layout if "axis" in k]
+        for axis in axes:
+            self.draw_gridlines(context, width, height, axis)
 
     def draw_gridlines(self, context, width, height, axis):
         if "_range" not in self.layout[axis]:
             return
         if axis.startswith("x"):
-            length = width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
-        elif axis.startswith("y"):
-            length = height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]
-
+            self.layout[axis]["_ticksobject"].update_length(
+                (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
+                * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
+            )
+            self.layout[axis]["_ticksobject"].calculate()
+        else:
+            self.layout[axis]["_ticksobject"].update_length(
+                (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
+                * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
+            )
+            self.layout[axis]["_ticksobject"].calculate()
+        anchor = (
+            self.layout[axis]["anchor"][0] + "axis" + self.layout[axis]["anchor"][1:]
+        )
+        anchor_range = self.layout[anchor]["_range"]
         context.set_source_rgb(*parse_color(self.layout[axis]["gridcolor"]))
         if axis.startswith("x"):
             x = self.layout[axis]["_tickvals"]
-            y_pos = [
-                height - self.layout["_margin"]["b"],
-                self.layout["_margin"]["t"],
-            ]
-            x_pos, _ = self.calc_pos(x, [], width, height, axis, None)
+            y = anchor_range
+            x_pos, y_pos = self.calc_pos(x, y, width, height, axis, anchor)
 
             for tick in x_pos:
                 context.line_to(tick, y_pos[0])
@@ -106,11 +128,8 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
         else:
             y = self.layout[axis]["_tickvals"]
-            x_pos = [
-                self.layout["_margin"]["l"],
-                width - self.layout["_margin"]["r"],
-            ]
-            _, y_pos = self.calc_pos([], y, width, height, None, axis)
+            x = anchor_range
+            x_pos, y_pos = self.calc_pos(x, y, width, height, anchor, axis)
 
             for tick in y_pos:
                 context.line_to(x_pos[0], tick)
@@ -118,11 +137,21 @@ class _PlotlyGtk(Gtk.DrawingArea):
                 context.stroke()
 
     def draw_all_ticks(self, context, width, height):
-        self.draw_ticks(context, width, height, "xaxis")
-        self.draw_ticks(context, width, height, "yaxis")
+        axes = [k for k in self.layout if "axis" in k]
+        for axis in axes:
+            self.draw_ticks(context, width, height, axis)
 
     def draw_ticks(self, context, width, height, axis):
-        if "_tickvals" not in self.layout[axis] or "_ticktext" not in self.layout[axis]:
+        if (
+            "_tickvals" not in self.layout[axis]
+            or "_ticktext" not in self.layout[axis]
+            or "_ticksobject" not in self.layout[axis]
+        ):
+            return
+        if (
+            "showticklabels" in self.layout[axis]
+            and not self.layout[axis]["showticklabels"]
+        ):
             return
         tickvals = self.layout[axis]["_tickvals"]
         ticktext = self.layout[axis]["_ticktext"]
@@ -139,8 +168,13 @@ class _PlotlyGtk(Gtk.DrawingArea):
         layout.set_font_description(font)
         if axis.startswith("x"):
             x = tickvals
-            y_pos = height - self.layout["_margin"]["b"]
-            x_pos, _ = self.calc_pos(x, [], width, height, axis, None)
+            yaxis = (
+                self.layout[axis]["anchor"][0]
+                + "axis"
+                + self.layout[axis]["anchor"][1:]
+            )
+            y = self.layout[yaxis]["_range"][0]
+            x_pos, y_pos = self.calc_pos(x, y, width, height, axis, yaxis)
 
             for tick, text in zip(x_pos, ticktext):
                 context.move_to(tick, y_pos)
@@ -151,8 +185,13 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
         else:
             y = tickvals
-            x_pos = self.layout["_margin"]["l"]
-            _, y_pos = self.calc_pos([], y, width, height, None, axis)
+            xaxis = (
+                self.layout[axis]["anchor"][0]
+                + "axis"
+                + self.layout[axis]["anchor"][1:]
+            )
+            x = self.layout[xaxis]["_range"][0]
+            x_pos, y_pos = self.calc_pos(x, y, width, height, xaxis, axis)
 
             for tick, text in zip(y_pos, ticktext):
                 context.move_to(x_pos, tick)
@@ -204,22 +243,42 @@ class _PlotlyGtk(Gtk.DrawingArea):
         y_pos = []
 
         if xaxis is not None:
+            xaxis_start = (
+                xaxis["domain"][0]
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
+                + self.layout["_margin"]["l"]
+            )
+            xaxis_end = (
+                xaxis["domain"][-1]
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
+                + self.layout["_margin"]["l"]
+            )
+
             x_min = xaxis["_range"][0]
             x_max = xaxis["_range"][1]
             x_pos = (x - x_min) / (x_max - x_min) * (
-                width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
-            ) + self.layout["_margin"]["l"]
+                xaxis_end - xaxis_start
+            ) + xaxis_start
 
         if yaxis is not None:
-            y_min = yaxis["_range"][0]
-            y_max = yaxis["_range"][1]
-            y_pos = (
-                height
-                - (y - y_min)
-                / (y_max - y_min)
+            yaxis_start = (
+                -(yaxis["domain"][0])
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
+                + height
                 - self.layout["_margin"]["b"]
             )
+            yaxis_end = (
+                -(yaxis["domain"][-1])
+                * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
+                + height
+                - self.layout["_margin"]["b"]
+            )
+
+            y_min = yaxis["_range"][0]
+            y_max = yaxis["_range"][1]
+            y_pos = (y - y_min) / (y_max - y_min) * (
+                yaxis_end - yaxis_start
+            ) + yaxis_start
 
         return x_pos, y_pos
 
@@ -290,16 +349,20 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
         if "markers" in modes:
             context.new_path()
+            if not isinstance(plot["marker"]["size"], (list, np.ndarray)):
+                size = np.array([plot["marker"]["size"]] * len(plot["x"]))
+            else:
+                size = np.array(plot["marker"]["size"]) / plot["marker"]["sizeref"]
+            radius = (
+                size / 2
+                if plot["marker"]["sizemode"] == "diameter"
+                else np.sqrt(size / np.pi)
+            )
 
-            for x, y in zip(x_pos, y_pos):
+            for x, y, r in zip(x_pos, y_pos, radius):
                 if np.isnan(x) or np.isnan(y):
                     continue
-                radius = (
-                    plot["marker"]["size"] / 2
-                    if plot["marker"]["sizemode"] == "diameter"
-                    else np.sqrt(plot["marker"]["size"] / np.pi)
-                )
-                context.arc(x, y, radius, 0, 2 * np.pi)
+                context.arc(x, y, r, 0, 2 * np.pi)
                 context.fill()
         if "lines" in modes:
             context.set_line_width(plot["line"]["width"])
@@ -339,7 +402,7 @@ class PlotlyGtk(Gtk.Overlay):
             ),
         )
 
-        self.connect("map", lambda _: self.update(self.fig))
+        self.connect("realize", lambda _: self.update(self.fig))
 
     def update(self, fig):
         self.update_ranges()
@@ -349,6 +412,7 @@ class PlotlyGtk(Gtk.Overlay):
         self.draw_buttons()
         self.draw_legend()
         self.draw_titles()
+        self.draw_annotations()
         self.set_child(_PlotlyGtk(fig))
 
     def update_ranges(self):
@@ -369,6 +433,7 @@ class PlotlyGtk(Gtk.Overlay):
                 if f"{axis_letter}axis" in plot
                 and plot[f"{axis_letter}axis"] == axis.replace("axis", "")
                 and ("visible" not in plot or plot["visible"])
+                and ("_visible" not in plot or plot["_visible"])
             ]
             if plots_on_axis == []:
                 continue
@@ -399,20 +464,63 @@ class PlotlyGtk(Gtk.Overlay):
                 if _range[0] == _range[-1]:
                     _range[0] = _range[0] - 1
                     _range[-1] = _range[1] + 1
-                range_length = _range[-1] - _range[0]
-                range_addon = range_length * 0.125 / 2
-                _range = [_range[0] - range_addon, _range[-1] + range_addon]
                 self.layout[axis]["_range"] = _range
-                if "type" in self.layout[axis] and self.layout[axis]["type"] == "log":
-                    self.layout[axis]["_range"] = np.log(self.layout[axis]["_range"])
 
-            Ticks(
-                self.layout,
-                axis,
-                0,
-            ).calculate()
+        # Do matching
+        matched_to_axes = set(
+            [
+                self.layout[axis]["matches"]
+                for axis in axes
+                if "matches" in self.layout[axis]
+            ]
+        )
+        match_groups = {
+            axis: [
+                ax
+                for ax in axes
+                if ax == axis[0] + "axis" + axis[1:]
+                or ("matches" in self.layout[ax] and self.layout[ax]["matches"] == axis)
+            ]
+            for axis in matched_to_axes
+        }
+        for match_group in match_groups.values():
+            _ranges = [self.layout[axis]["_range"] for axis in match_group]
+            _range = [min(r[0] for r in _ranges), max(r[-1] for r in _ranges)]
+            for axis in match_group:
+                self.layout[axis]["_range"] = _range
+
+        for axis in axes:
+            if "_range" not in self.layout[axis]:
+                continue
+            if "type" in self.layout[axis] and self.layout[axis]["type"] == "log":
+                self.layout[axis]["_range"] = np.log(self.layout[axis]["_range"])
+            else:
+                range_length = (
+                    self.layout[axis]["_range"][-1] - self.layout[axis]["_range"][0]
+                )
+                range_addon = range_length * 0.125 / 2
+                self.layout[axis]["_range"] = [
+                    self.layout[axis]["_range"][0] - range_addon,
+                    self.layout[axis]["_range"][-1] + range_addon,
+                ]
+            if "_ticksobject" not in self.layout[axis]:
+                self.layout[axis]["_ticksobject"] = Ticks(
+                    self.layout,
+                    axis,
+                    0,
+                )
+                self.layout[axis]["_ticksobject"].calculate()
 
     def prepare_data(self):
+        for plot in self.data:
+            plot["x"] = [
+                (
+                    x.replace(tzinfo=timezone.utc).timestamp()
+                    if isinstance(x, datetime.datetime)
+                    else x
+                )
+                for x in plot["x"]
+            ]
         plots = []
         for plot in self.data:
             if plot["type"] in ["scatter", "scattergl"]:
@@ -550,7 +658,11 @@ class PlotlyGtk(Gtk.Overlay):
                 self.layout["_margin"]["r"] = max(self.layout["_margin"]["r"], new)
             if top:
                 if "y" in pushmargin and "yt" in pushmargin:
-                    raise NotImplementedError
+                    new = (
+                        (pushmargin["y"] - 1) * (height - self.layout["margin"]["b"])
+                        + padding
+                        + pushmargin["yt"]
+                    ) / pushmargin["y"]
                 else:
                     raise NotImplementedError
             if bottom:
@@ -581,8 +693,20 @@ class PlotlyGtk(Gtk.Overlay):
         yaxes = set(yaxes)
 
         template = self.layout["template"]["layout"]
-        for xaxis in xaxes:
-            defaults = dict(
+        defaults = dict(
+            font=dict(
+                color="#444",
+                family='"Open Sans", verdana, arial, sans-serif',
+                size=12,
+                style="normal",
+                variant="normal",
+                weight="normal",
+            ),
+            legend=dict(
+                bordercolor="#444",
+                borderwidth=0,
+                entrywidth=0,
+                entrywidthmode="pixels",
                 font=dict(
                     color="#444",
                     family='"Open Sans", verdana, arial, sans-serif',
@@ -591,11 +715,22 @@ class PlotlyGtk(Gtk.Overlay):
                     variant="normal",
                     weight="normal",
                 ),
-                legend=dict(
-                    bordercolor="#444",
-                    borderwidth=0,
-                    entrywidth=0,
-                    entrywidthmode="pixels",
+                groupclick="togglegroup",
+                grouptitlefont=dict(
+                    color="#444",
+                    family='"Open Sans", verdana, arial, sans-serif',
+                    size=12,
+                    style="normal",
+                    variant="normal",
+                    weight="normal",
+                ),
+                indentation=0,
+                itemclick="toggle",
+                itemdoubleclick="toggleothers",
+                itemsizing="trace",
+                itemwidth=30,
+                orientation="v",
+                title=dict(
                     font=dict(
                         color="#444",
                         family='"Open Sans", verdana, arial, sans-serif',
@@ -604,131 +739,108 @@ class PlotlyGtk(Gtk.Overlay):
                         variant="normal",
                         weight="normal",
                     ),
-                    groupclick="togglegroup",
-                    grouptitlefont=dict(
-                        color="#444",
-                        family='"Open Sans", verdana, arial, sans-serif',
-                        size=12,
-                        style="normal",
-                        variant="normal",
-                        weight="normal",
-                    ),
-                    indentation=0,
-                    itemclick="toggle",
-                    itemdoubleclick="toggleothers",
-                    itemsizing="trace",
-                    itemwidth=30,
-                    orientation="v",
-                    title=dict(
-                        font=dict(
-                            color="#444",
-                            family='"Open Sans", verdana, arial, sans-serif',
-                            size=12,
-                            style="normal",
-                            variant="normal",
-                            weight="normal",
-                        ),
-                        text="",
-                    ),
-                    tracegroupgap=10,
-                    traceorder="",
-                    valign="middle",
-                    visible=True,
-                    xanchor="left",
-                    xref="paper",
-                    yanchor="auto",
-                    yref="paper",
+                    text="",
                 ),
-                margin=dict(autoexpand=True, t=100, l=80, r=80, b=80),
-                xaxis=dict(
-                    automargin=True,
-                    autorange=True,
-                    autotickangles=[0, 30, 90],
-                    color="#444",
-                    domain=[0, 1],
-                    gridcolor="#eee",
-                    griddash="solid",
-                    gridwidth=1,
-                    hoverformt="",
-                    layer="above traces",
-                    linecolor="#444",
-                    linewidth=1,
-                    minexponent=3,
-                    minor=dict(),
-                    mirror=False,
-                    nticks=0,
-                    position=0,
-                    rangemode="normal",
-                    showgrid=True,
-                    showline=True,
-                    showticklabels=True,
-                    showtickprefix="all",
-                    showticksuffix="all",
-                    side="bottom",
-                    tickangle="auto",
-                    tickfont=dict(style="normal", variant="normal", weight="normal"),
-                    tickformat="",
-                    ticklabelmode="instant",
-                    ticklabelposition="outside",
-                    ticklabelstep=1,
-                    ticklen=5,
-                    tickprefix="",
-                    ticks="",
-                    tickson="labels",
-                    ticksuffix="",
-                    tickwidth=1,
-                    title=dict(
-                        font=dict(style="normal", variant="normal", weight="normal")
-                    ),
-                    type="-",
-                    zerolinecolor="#444",
-                    zerolinewidth=1,
+                tracegroupgap=10,
+                traceorder="",
+                valign="middle",
+                visible=True,
+                xanchor="left",
+                xref="paper",
+                yanchor="auto",
+                yref="paper",
+            ),
+            margin=dict(autoexpand=True, t=100, l=80, r=80, b=80),
+            xaxis=dict(
+                automargin=True,
+                autorange=True,
+                autotickangles=[0, 30, 90],
+                color="#444",
+                domain=[0, 1],
+                gridcolor="#eee",
+                griddash="solid",
+                gridwidth=1,
+                hoverformt="",
+                layer="above traces",
+                linecolor="#444",
+                linewidth=1,
+                minexponent=3,
+                minor=dict(),
+                mirror=False,
+                nticks=0,
+                position=0,
+                rangemode="normal",
+                showgrid=True,
+                showline=True,
+                showticklabels=True,
+                showtickprefix="all",
+                showticksuffix="all",
+                side="bottom",
+                tickangle="auto",
+                tickfont=dict(style="normal", variant="normal", weight="normal"),
+                tickformat="",
+                ticklabelmode="instant",
+                ticklabelposition="outside",
+                ticklabelstep=1,
+                ticklen=5,
+                tickprefix="",
+                ticks="",
+                tickson="labels",
+                ticksuffix="",
+                tickwidth=1,
+                title=dict(
+                    font=dict(style="normal", variant="normal", weight="normal")
                 ),
-                yaxis=dict(
-                    automargin=True,
-                    autorange=True,
-                    autotickangles=[0, 30, 90],
-                    color="#444",
-                    domain=[0, 1],
-                    gridcolor="#eee",
-                    griddash="solid",
-                    gridwidth=1,
-                    hoverformt="",
-                    layer="above traces",
-                    linecolor="#444",
-                    linewidth=1,
-                    minexponent=3,
-                    minor=dict(),
-                    mirror=False,
-                    nticks=0,
-                    position=0,
-                    rangemode="normal",
-                    showgrid=True,
-                    showline=True,
-                    showticklabels=True,
-                    showtickprefix="all",
-                    showticksuffix="all",
-                    side="left",
-                    tickangle="auto",
-                    tickfont=dict(style="normal", variant="normal", weight="normal"),
-                    tickformat="",
-                    ticklabelmode="instant",
-                    ticklabelposition="outside",
-                    ticklabelstep=1,
-                    ticklen=5,
-                    tickprefix="",
-                    ticks="",
-                    tickson="labels",
-                    ticksuffix="",
-                    tickwidth=1,
-                    title=dict(
-                        font=dict(style="normal", variant="normal", weight="normal")
-                    ),
-                    type="-",
-                    zerolinecolor="#444",
-                    zerolinewidth=1,
+                type="-",
+                zerolinecolor="#444",
+                zerolinewidth=1,
+            ),
+            yaxis=dict(
+                automargin=True,
+                autorange=True,
+                autotickangles=[0, 30, 90],
+                color="#444",
+                domain=[0, 1],
+                gridcolor="#eee",
+                griddash="solid",
+                gridwidth=1,
+                hoverformt="",
+                layer="above traces",
+                linecolor="#444",
+                linewidth=1,
+                minexponent=3,
+                minor=dict(),
+                mirror=False,
+                nticks=0,
+                position=0,
+                rangemode="normal",
+                showgrid=True,
+                showline=True,
+                showticklabels=True,
+                showtickprefix="all",
+                showticksuffix="all",
+                side="left",
+                tickangle="auto",
+                tickfont=dict(style="normal", variant="normal", weight="normal"),
+                tickformat="",
+                ticklabelmode="instant",
+                ticklabelposition="outside",
+                ticklabelstep=1,
+                ticklen=5,
+                tickprefix="",
+                ticks="",
+                tickson="labels",
+                ticksuffix="",
+                tickwidth=1,
+                title=dict(
+                    font=dict(style="normal", variant="normal", weight="normal")
                 ),
-            )
+                type="-",
+                zerolinecolor="#444",
+                zerolinewidth=1,
+            ),
+        )
+        for xaxis in xaxes:
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
         for yaxis in yaxes:
@@ -751,11 +863,23 @@ class PlotlyGtk(Gtk.Overlay):
         self.overlays.append(overlay)
         self.add_overlay(overlay)
 
+    def draw_annotations(self):
+        if "annotations" not in self.layout:
+            return
+        for annotation in self.layout["annotations"]:
+            overlay = Annotation(self, annotation)
+            self.overlays.append(overlay)
+            self.add_overlay(overlay)
+
     def draw_titles(self):
         axes = [k for k in self.layout if "axis" in k]
         for axis in axes:
-            if "title" not in self.layout[axis]:
-                return
+            if (
+                "title" not in self.layout[axis]
+                or self.layout[axis]["title"] is False
+                or "text" not in self.layout[axis]["title"]
+            ):
+                continue
             overlay = AxisTitle(self, self.layout[axis], axis_name=axis)
             self.overlays.append(overlay)
             self.add_overlay(overlay)
