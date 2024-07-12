@@ -1,3 +1,4 @@
+# pylint: disable=all
 import gi
 import numpy as np
 import plotly.express as px
@@ -7,7 +8,7 @@ from plotly_gtk.webview import FigureWebView
 
 gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Adw, Gtk  # noqa: E402
+from gi.repository import Adw, Gtk
 
 
 def get_test_figure(reference):
@@ -50,7 +51,7 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure("line_1")
+    fig = get_test_figure("scatter_facetting")
     print(fig)
     # print(fig["layout"]["template"])
 
