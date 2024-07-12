@@ -1,4 +1,5 @@
 import gi
+import numpy as np
 import plotly.express as px
 
 from plotly_gtk.chart import PlotlyGtk
@@ -35,6 +36,12 @@ def get_test_figure(reference):
             facet_col="sex",
             facet_row="time",
         )
+    elif reference == "line_1":
+        t = np.linspace(0, 2 * np.pi, 100)
+        fig = px.line(x=t, y=np.cos(t), labels={"x": "t", "y": "cos(t)"})
+    elif reference == "line_2":
+        df = px.data.gapminder().query("continent == 'Oceania'")
+        fig = px.line(df, x="year", y="lifeExp", color="country")
     return fig
 
 
@@ -43,7 +50,7 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure("scatter_2")
+    fig = get_test_figure("line_1")
     print(fig)
     # print(fig["layout"]["template"])
 
