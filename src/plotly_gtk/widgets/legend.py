@@ -58,18 +58,24 @@ class Legend(Base):
             elif n == 2:
                 action = legend["itemdoubleclick"]
 
-            if action == "toggle":
-                if "_visible" not in _trace:
-                    _trace["_visible"] = _trace["visible"]
-                _trace["_visible"] = not _trace["_visible"]
-            elif action == "toggleothers":
-                for trace in plot.data:
-                    trace["_visible"] = not _trace["visible"]
-                _trace["_visible"] = not _trace["_visible"]
-            elif action == "none":
-                pass
+            if "legendgroup" in _trace:
+                _traces = [t for t in plot.data if "legendgroup" in t and t["legendgroup"] == _trace["legendgroup"]]
             else:
-                raise ValueError(f"Unknown action {action}")
+                _traces = [_trace]
+
+            for t in _traces:
+                if action == "toggle":
+                    if "_visible" not in t:
+                        t["_visible"] = t["visible"]
+                    t["_visible"] = not t["_visible"]
+                elif action == "toggleothers":
+                    for trace in plot.data:
+                        trace["_visible"] = not t["visible"]
+                    t["_visible"] = not t["_visible"]
+                elif action == "none":
+                    pass
+                else:
+                    raise ValueError(f"Unknown action {action}")
 
             plot.update(dict(data=plot.data, layout=plot.layout))
 
@@ -78,6 +84,8 @@ class Legend(Base):
             if trace["type"] not in ["scatter", "scattergl"]:
                 continue
             if "visible" in trace and not trace["visible"]:
+                continue
+            if "showlegend" in trace and not trace["showlegend"]:
                 continue
 
             icon = Icon(plot, trace, index)
@@ -100,16 +108,26 @@ class Legend(Base):
             )
             if "_visible" in trace and not trace["_visible"]:
                 label.add_css_class("plotly-legend-clicked")
+            else:
+                label.add_css_class("plotly-legend-not-clicked")
             label.add_controller(click)
 
             grid.attach(label, 1, index, 1, 1)
             index += 1
+
+        if "text" in legend["title"]:
+            grid.insert_row(0)
+            title = Gtk.Label(label=legend["title"]["text"])
+            title.set_halign(Gtk.Align.START)
+            title.add_css_class("plotly-legend-title")
+            grid.attach(title, 0, 0, 2, 1)
 
         if index == 1:
             self.remove(grid)
             return
 
         font = legend["font"]
+        title_font = legend["title"]["font"]
         custom_css = Gtk.CssProvider()
         custom_css.load_from_string(
             f"""
@@ -119,15 +137,25 @@ class Legend(Base):
                 box-shadow: none;
             }}
             .plotly-legend label {{
-                color: {font["color"]};
                 font-family: {font["family"]};
                 font-size: {font["size"]}px;
                 font-style: {font["style"]};
                 font-variant: {font["variant"]};
                 font-weight: {font["weight"]};
             }}
+            .plotly-legend-title {{
+                color: {title_font["color"]};
+                font-family: {title_font["family"]};
+                font-size: {title_font["size"]}px;
+                font-style: {title_font["style"]};
+                font-variant: {title_font["variant"]};
+                font-weight: {title_font["weight"]};
+            }}
+            .plotly-legend-not-clicked {{
+                color: {font["color"]};
+            }}
             .plotly-legend-clicked {{
-                color: lighter({legend["font"]["color"]});
+                color: shade({font["color"]}, 2);
             }}
             """
         )
@@ -136,7 +164,6 @@ class Legend(Base):
             custom_css,
             Gtk.STYLE_PROVIDER_PRIORITY_USER,
         )
-
         self.add_css_class("plotly-legend")
 
 
@@ -173,11 +200,14 @@ class Icon(Gtk.DrawingArea):
                 color = [c + (1 - c) / 2 for c in color]
             context.set_source_rgb(*color)
 
-            radius = (
-                self.trace["marker"]["size"] / 2
-                if self.trace["marker"]["sizemode"] == "diameter"
-                else np.sqrt(self.trace["marker"]["size"] / np.pi)
-            )
+            if isinstance(self.trace["marker"]["size"], (list, np.ndarray)):
+                radius = 4
+            else:
+                radius = (
+                    self.trace["marker"]["size"] / 2
+                    if self.trace["marker"]["sizemode"] == "diameter"
+                    else np.sqrt(self.trace["marker"]["size"] / np.pi)
+                )
             context.arc(width / 2, height / 2, radius, 0, 2 * np.pi)
             context.fill()
             self.marker_radius = radius

@@ -12,11 +12,16 @@ class Ticks:
         self.max = self.axis_layout["_range"][-1]
         self.length = length
 
+    def update_length(self, length):
+        self.length = length
+
     def tick_first(self):
         tmin = (
-            np.ceil((self.min - self.axis_layout["tick0"]) / self.axis_layout["dtick"])
-            * self.axis_layout["dtick"]
-            + self.axis_layout["tick0"]
+            np.ceil(
+                (self.min - self.axis_layout["_tick0"]) / self.axis_layout["_dtick"]
+            )
+            * self.axis_layout["_dtick"]
+            + self.axis_layout["_tick0"]
         )
         return tmin
 
@@ -29,7 +34,7 @@ class Ticks:
         self.axis_layout["_tickvals"] = np.arange(
             self.tick_first(),
             self.max,
-            self.axis_layout["dtick"],
+            self.axis_layout["_dtick"],
         )
         self.axis_layout["_ticktext"] = np.char.mod("%g", self.axis_layout["_tickvals"])
         return self.axis_layout["_tickvals"]
@@ -48,8 +53,9 @@ class Ticks:
 
     @staticmethod
     def round_up(value, rounding_set):
-        assert value <= np.max(rounding_set)
-        return rounding_set[np.argwhere(np.array(rounding_set) > value)[0][0]]
+        if value <= np.max(rounding_set):
+            return rounding_set[np.argwhere(np.array(rounding_set) > value)[0][0]]
+        return max(rounding_set)
 
     @staticmethod
     def round_dtick(rough_dtick, base, rounding_set):
@@ -60,9 +66,9 @@ class Ticks:
         def get_base(v):
             return np.power(v, np.floor(np.log(rough_dtick) / np.log(10)))
 
-        self.axis_layout["tick0"] = 0
+        self.axis_layout["_tick0"] = 0
         base = get_base(10)
-        self.axis_layout["dtick"] = self.round_dtick(
+        self.axis_layout["_dtick"] = self.round_dtick(
             rough_dtick, base, self.ROUND_SET[10]
         )
 
