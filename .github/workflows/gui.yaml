@@ -1,0 +1,46 @@
+name: GUI test
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - feature/*
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 make xvfb
+      - name: Install python packages
+        run: |
+          pip install wheel
+          pip install -e .[doc]
+      - name: Setup xvfb for screen 0
+        run: Xvfb :1 -screen 0 1600x1200x24 &
+      - name: Demo
+        run: python -m plotly_gtk.demo &
+        env:
+          DISPLAY: :1
+      - name: Screenshot
+        run: sleep 10 & DISPLAY=:0 import -window root screenshot.png
+      - name: Upload screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          path: screenshot.png
+      - name: Tear down xvfb
+        run: killall Xvfb
