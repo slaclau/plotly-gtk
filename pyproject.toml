@@ -1,10 +1,10 @@
 [project]
 name = "plotly-gtk"
 version = "0.0.1"
-dependencies = []
+dependencies = ["numpy", "pygobject", "pandas"]
 
 [project.optional-dependencies]
-doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme"]
+doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme"]
 
 [tool.mypy]
 # Disallow dynamic typing
@@ -47,11 +47,14 @@ load-plugins = [
 
 [tool.pylint.MESSAGES-CONTROL]
 enable = [
-    "missing-function-docstring"
+    "missing-function-docstring",
+    "useless-supression"
 ]
 disable = [
+    "fixme",
     "invalid-name",
-    "logging-fstring-interpolation"
+    "logging-fstring-interpolation",
+    "use-dict-literal"
 ]
 extension-pkg-allow-list = [
 ]
