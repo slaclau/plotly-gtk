@@ -21,13 +21,21 @@ from gi.repository import (  # pylint: disable=wrong-import-order,wrong-import-p
 if TYPE_CHECKING:
     from plotly import graph_objects as go
 
+try:
+    from plotly import graph_objects as go
+except NameError:
+    print("plotly not available")
+
 class PlotlyGtk(Gtk.Overlay):
     """Class for rendering plotly :class:`plotly.graph_objects.Figure`."""
 
-    def __init__(self, fig: "go.Figure" | dict):
+    def __init__(self, fig: "go.Figure | dict"):
         super().__init__()
         self.pushmargin = {}
-        fig = fig.to_dict() if isinstance(fig, go.Figure) else fig
+        try:
+            fig = fig.to_dict() if isinstance(fig, go.Figure) else fig
+        except NameError:
+            pass
 
         self.data = fig["data"]
 
