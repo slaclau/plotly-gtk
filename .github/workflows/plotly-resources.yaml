@@ -1,0 +1,47 @@
+name: Update plotly resource jsons
+env:
+  USERNAME: ${{ github.actor }}
+  ADDRESS_SUFFIX: users.noreply.github.com
+permissions:
+  contents: write
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout plotly-gtk
+      uses: actions/checkout@v4
+    - name: Checkout plotly.js
+      uses: actions/checkout@v4
+      with:
+        repository: plotly/plotly.js
+        path: _resources/plotly.js
+    - name: Checkout plotly.py
+      uses: actions/checkout@v4
+      with:
+        repository: plotly/plotly.py
+        path: _resources/plotly.py
+    - name: Update resources
+      run: |
+        cp _resources/plotly.js/dist/plot-schema.json src/plotly_gtk/utils
+        cp -r _resources/plotly.py/packages/python/plotly/plotly/package_data/templates src/plotly_gtk/utils
+    - name: Check if resources have been updated
+      run: |
+        if git diff --quiet; then
+          echo "No changes detected. Exiting."
+          echo "no_changes=true" >> $GITHUB_ENV
+        fi
+      
+    - name: Commit and push
+      if: env.no_changes != 'true'
+      run: |
+        git config user.name "$USERNAME"
+        git config user.email "$USERNAME@$ADDRESS_SUFFIX"
+        git commit -a -m "Update plotly resources"
+        git push
