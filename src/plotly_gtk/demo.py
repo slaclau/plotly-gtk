@@ -10,6 +10,16 @@ gi.require_version("Adw", "1")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Adw, Gtk
 
+scatter_demos = [
+    "scatter_1",
+    "scatter_2",
+    "scatter_size_color_column",
+    "scatter_facetting",
+    "line_1",
+    "line_2",
+]
+demos = scatter_demos
+
 
 def get_test_figure(reference):
     if reference == "scatter_1":
@@ -51,7 +61,7 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure("scatter_facetting")
+    fig = get_test_figure("scatter_size_color_column")
     print(fig)
     # print(fig["layout"]["template"])
 
