@@ -1,4 +1,4 @@
-name: GitHub Pages
+name: Main
 
 on:
   push:
@@ -22,15 +22,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    uses: ./.github/workflows/gui.yaml
   # Build job
-  build:
+  build-docs:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup python 
+      - name: Setup python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -45,6 +48,11 @@ jobs:
         run: |
           pip install wheel
           pip install -e .[doc]
+      - name: Get test artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test
+          path: docs/test
       - name: Build pages
         run: |
           cd sphinx
@@ -54,13 +62,13 @@ jobs:
         with:
           path: docs
   # Deployment job
-  deploy:
+  deploy-docs:
     if: github.ref_name == 'master'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-docs
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
