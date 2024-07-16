@@ -158,7 +158,7 @@ class PlotlyGtk(Gtk.Overlay):
             if "_range" not in self.layout[axis]:
                 continue
             if self.layout[axis]["_type"] == "log":
-                self.layout[axis]["_range"] = np.log(self.layout[axis]["_range"])
+                self.layout[axis]["_range"] = np.log10(self.layout[axis]["_range"])
             else:
                 range_length = (
                     self.layout[axis]["_range"][-1] - self.layout[axis]["_range"][0]
@@ -511,7 +511,7 @@ class PlotlyGtk(Gtk.Overlay):
             ),
         )
         for xaxis in xaxes:
-            if "type" not in xaxis:
+            if "type" not in self.layout[xaxis]:
                 first_plot_on_axis = [
                     trace
                     for trace in self.data
@@ -525,7 +525,7 @@ class PlotlyGtk(Gtk.Overlay):
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
         for yaxis in yaxes:
-            if "type" not in yaxis:
+            if "type" not in self.layout[yaxis]:
                 first_plot_on_axis = [
                     trace
                     for trace in self.data
