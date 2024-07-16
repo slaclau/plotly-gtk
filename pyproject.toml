@@ -9,7 +9,8 @@ build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme", "plotly"]
-test = ["plotly", "pytest", "pillow", "selenium"]
+test = ["plotly", "pytest", "pillow", "selenium","pytest-subtests", "pytest-cov", "pytest-html"]
+dev = ["plotly-gtk[doc, test]"]
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md", content-type = "text/markdown"}
