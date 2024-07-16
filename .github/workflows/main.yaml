@@ -42,11 +42,16 @@ jobs:
         run: |
           pip install wheel
           pip install -e .[doc]
-      - name: Get test artifact
+      - name: Get demo artifact
         uses: actions/download-artifact@v4
         with:
-          name: test
+          name: demo
           path: sphinx/source/examples
+      - name: Get report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: report
+          path: sphinx/source/_prebuilt
       - name: Build pages
         run: |
           cd sphinx
