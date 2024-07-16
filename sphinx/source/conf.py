@@ -73,7 +73,7 @@ html_theme_options = {
     }
 }
 # -- Custom build scripts -------------------------------------------------
-file = directory = (pathlib.Path(__file__).parent / "example.rst").resolve()
+file = (pathlib.Path(__file__).parent / "example.rst").resolve()
 with open(file, "a+", encoding="utf-8") as f:
     title = "Examples"
     f.write(title)
@@ -81,3 +81,8 @@ with open(file, "a+", encoding="utf-8") as f:
     for demo in demos:
         f.write(demo)
         f.write("-"*len(demo))
+        f.write(".. literalinclude:: src/plotly_gtk/demo.py")
+        f.write(f"   :start-after: {demo}")
+        f.write("   :end-before: el")
+        
+        
