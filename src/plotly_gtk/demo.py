@@ -19,9 +19,27 @@ scatter_demos = [
     "line_2",
 ]
 demos = {"Scatter": scatter_demos}
+log_demos = ["log_1"]
+demos = scatter_demos + log_demos
 
 
 def get_test_figure(reference):
+    if reference in scatter_demos:
+        return _get_scatter_test_figure(reference)
+    if reference in log_demos:
+        return _get_log_test_figure(reference)
+
+
+def _get_log_test_figure(reference):
+    if reference == "log_1":
+        df = px.data.gapminder().query("year == 2007")
+        fig = px.scatter(
+            df, x="gdpPercap", y="lifeExp", hover_name="country", log_x=True
+        )
+    return fig
+
+
+def _get_scatter_test_figure(reference):
     if reference == "scatter_1":
         fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
     elif reference == "scatter_2":
@@ -61,7 +79,7 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure("scatter_size_color_column")
+    fig = get_test_figure("log_1")
     print(fig)
     # print(fig["layout"]["template"])
 

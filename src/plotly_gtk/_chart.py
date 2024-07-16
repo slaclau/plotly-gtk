@@ -263,9 +263,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         )
 
         if log_x and not ignore_log_x:
-            x = np.log(x)
+            x = np.log10(x)
         if log_y and not ignore_log_y:
-            y = np.log(y)
+            y = np.log10(y)
 
         x_pos = []
         y_pos = []
