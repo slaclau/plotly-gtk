@@ -51,7 +51,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: report
-          path: sphinx/source/_prebuilt
+          path: sphinx/source/prebuilt
       - name: Build pages
         run: |
           cd sphinx
