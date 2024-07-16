@@ -1,6 +1,6 @@
 import os
 import sys
-
+from plotly_gtk.demo import demos
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -72,3 +72,11 @@ html_theme_options = {
         "image_dark": "icon.png",
     }
 }
+# -- Custom build scripts -------------------------------------------------
+with open("source/examples.rst") as f:
+    title = "Examples"
+    f.write(title)
+    f.write("="*len(title))
+    for demo in demos:
+        f.write(demo)
+        f.write("-"*len(demo))
