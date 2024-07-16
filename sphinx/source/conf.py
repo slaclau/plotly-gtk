@@ -73,7 +73,8 @@ html_theme_options = {
     }
 }
 # -- Custom build scripts -------------------------------------------------
-with open("source/examples.rst", "w", encoding="utf-8") as f:
+file = directory = (pathlib.Path(__file__).parent / "example.rst").resolve()
+with open(file, "a+", encoding="utf-8") as f:
     title = "Examples"
     f.write(title)
     f.write("="*len(title))
