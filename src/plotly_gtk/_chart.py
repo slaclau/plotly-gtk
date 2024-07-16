@@ -33,8 +33,6 @@ class _PlotlyGtk(Gtk.DrawingArea):
         """
         self.data = fig["data"]
         self.layout = fig["layout"]
-        if DEBUG:
-            print(self.layout)
         self.queue_draw()
 
     def _on_draw(self, area, context, x, y):  # pylint: disable=unused-argument
@@ -70,7 +68,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         for xaxis, yaxis in cartesian_subplots:
             x = self.layout[xaxis]["_range"]
             y = self.layout[yaxis]["_range"]
-            x_pos, y_pos = self._calc_pos(x, y, width, height, xaxis, yaxis, ignore_log_x=True, ignore_log_y=True)
+            x_pos, y_pos = self._calc_pos(
+                x, y, width, height, xaxis, yaxis, ignore_log_x=True, ignore_log_y=True
+            )
             context.rectangle(
                 x_pos[0], y_pos[0], x_pos[-1] - x_pos[0], y_pos[-1] - y_pos[0]
             )
@@ -118,7 +118,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         if axis.startswith("x"):
             x = self.layout[axis]["_tickvals"]
             y = anchor_range
-            x_pos, y_pos = self._calc_pos(x, y, width, height, axis, anchor, ignore_log_y=True)
+            x_pos, y_pos = self._calc_pos(
+                x, y, width, height, axis, anchor, ignore_log_y=True
+            )
 
             for tick in x_pos:
                 context.line_to(tick, y_pos[0])
@@ -128,7 +130,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         else:
             y = self.layout[axis]["_tickvals"]
             x = anchor_range
-            x_pos, y_pos = self._calc_pos(x, y, width, height, anchor, axis, ignore_log_x=True)
+            x_pos, y_pos = self._calc_pos(
+                x, y, width, height, anchor, axis, ignore_log_x=True
+            )
 
             for tick in y_pos:
                 context.line_to(x_pos[0], tick)
@@ -237,7 +241,15 @@ class _PlotlyGtk(Gtk.DrawingArea):
         context.stroke()
 
     def _calc_pos(
-        self, x, y, width, height, xaxis=None, yaxis=None, ignore_log_x=False, ignore_log_y=False,
+        self,
+        x,
+        y,
+        width,
+        height,
+        xaxis=None,
+        yaxis=None,
+        ignore_log_x=False,
+        ignore_log_y=False,
     ):  # pylint: disable=too-many-arguments,too-many-locals
         if isinstance(xaxis, str):
             xaxis = self.layout[xaxis] if xaxis in self.layout else None
