@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 from plotly_gtk.demo import demos
 # Configuration file for the Sphinx documentation builder.
