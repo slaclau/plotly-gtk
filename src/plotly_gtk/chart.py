@@ -26,6 +26,7 @@ try:
 except NameError:
     print("plotly not available")
 
+
 class PlotlyGtk(Gtk.Overlay):
     """Class for rendering plotly :class:`plotly.graph_objects.Figure`."""
 
@@ -172,6 +173,8 @@ class PlotlyGtk(Gtk.Overlay):
                     axis,
                     0,
                 )
+                self.layout[axis]["_ticksobject"].calculate()
+            else:
                 self.layout[axis]["_ticksobject"].calculate()
 
     def _prepare_data(self):
