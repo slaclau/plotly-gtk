@@ -37,7 +37,7 @@ jobs:
       - name: Install apt packages
         run: |
           sudo apt update
-          sudo apt install libgirepository1.0-dev libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 make
+          sudo apt install libgirepository1.0-dev libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 make graphviz
       - name: Install python packages
         run: |
           pip install wheel
@@ -46,7 +46,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test
-          path: docs/test
+          path: sphinx/source/examples
       - name: Build pages
         run: |
           cd sphinx
