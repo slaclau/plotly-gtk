@@ -157,7 +157,7 @@ class PlotlyGtk(Gtk.Overlay):
         for axis in axes:
             if "_range" not in self.layout[axis]:
                 continue
-            if "type" in self.layout[axis] and self.layout[axis]["type"] == "log":
+            if self.layout[axis]["_type"] == "log":
                 self.layout[axis]["_range"] = np.log(self.layout[axis]["_range"])
             else:
                 range_length = (
@@ -569,7 +569,6 @@ class PlotlyGtk(Gtk.Overlay):
 
         data_types = [to_type(d) for d in data]
         data_types = {d: data_types.count(d) for d in set(data_types)}
-        print(data_types)
         if len(data_types) == 1:
             return list(data_types)[0]
         if "linear" not in data_types:

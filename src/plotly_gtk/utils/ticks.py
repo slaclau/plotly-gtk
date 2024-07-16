@@ -76,7 +76,7 @@ class Ticks:
 
     def array_ticks(self):
         vals = self.axis_layout["tickvals"]
-        if "type" in self.axis_layout and self.axis_layout["type"] == "log":
+        if self.axis_layout["_type"] == "log":
             vals = np.log(vals)
         range = self.axis_layout["_range"]
         idx_min = np.argwhere(vals >= range[0])[0][0]
