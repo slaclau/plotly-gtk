@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   test:
-    uses: ./.github/workflows/gui.yaml
+    uses: ./.github/workflows/test.yaml
   # Build job
   build-docs:
     runs-on: ubuntu-latest
