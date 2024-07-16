@@ -58,8 +58,12 @@ class Legend(Base):
             elif n == 2:
                 action = legend["itemdoubleclick"]
 
-            if "legendgroup" in _trace:
-                _traces = [t for t in plot.data if "legendgroup" in t and t["legendgroup"] == _trace["legendgroup"]]
+            if "legendgroup" in _trace and _trace["legendgroup"] != "":
+                _traces = [
+                    t
+                    for t in plot.data
+                    if "legendgroup" in t and t["legendgroup"] == _trace["legendgroup"]
+                ]
             else:
                 _traces = [_trace]
 
