@@ -73,7 +73,7 @@ html_theme_options = {
     }
 }
 # -- Custom build scripts -------------------------------------------------
-with open("source/examples.rst") as f:
+with open("source/examples.rst", "w+", encoding="utf-8") as f:
     title = "Examples"
     f.write(title)
     f.write("="*len(title))
