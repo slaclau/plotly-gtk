@@ -26,6 +26,8 @@ class Ticks:
         return tmin
 
     def calculate(self):
+        self.min = self.axis_layout["_range"][0]
+        self.max = self.axis_layout["_range"][-1]
         self.prepare()
 
         if "tickmode" in self.axis_layout and self.axis_layout["tickmode"] == "array":
