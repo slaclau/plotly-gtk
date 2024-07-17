@@ -1,10 +1,10 @@
-from itertools import chain
 import os
 import pathlib
 import subprocess
 import sys
 import threading
 import time
+from itertools import chain
 
 import gi
 import numpy as np

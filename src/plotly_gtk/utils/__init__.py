@@ -138,14 +138,16 @@ def get_base_fig() -> dict:
         The dictionary returned by plotly.graph_object.Figure().to_dict()
     """
     template = "potly"
-    file = importlib.resources.files(anchor="plotly_gtk.utils") / "templates" / f"{template}.json"
+    file = (
+        importlib.resources.files(anchor="plotly_gtk.utils")
+        / "templates"
+        / f"{template}.json"
+    )
     with open(file, encoding="utf-8") as f:
         template_dict = json.load(f)
     return {
         "data": [],
-        "layout": {
-            "template": template_dict
-        },
+        "layout": {"template": template_dict},
     }
 
 
