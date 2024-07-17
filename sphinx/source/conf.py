@@ -87,8 +87,11 @@ with open(file, "a+", encoding="utf-8") as f:
             f.write("-"*len(demo)+"\n\n")
             f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
             f.write(f"   :start-after: = \"{demo}\n")
-            f.write("   :end-before: el\n")
-            f.write("   :end-before: return\n\n")
+            if demo == demos_list[-1]:
+                f.write("   :end-before: return fig\n\n")
+            else: 
+                f.write("   :end-before: el\n\n")
+
             f.write(f".. image:: examples/{demo}.png\n\n")
             
         
