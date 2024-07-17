@@ -1,7 +1,9 @@
 import os
 import pathlib
 import sys
+
 from plotly_gtk.demo import demos
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -19,6 +21,7 @@ author = "Sebastien Laclau"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
