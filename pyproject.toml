@@ -106,5 +106,5 @@ require-plugins = [
 docstring_style = "numpy"
 
 [tool.coverage.run]
-omit = "test/demo"
+omit = ["test/demo"]
 
