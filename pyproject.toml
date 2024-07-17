@@ -104,3 +104,7 @@ require-plugins = [
     "flake8-bugbear",
 ]
 docstring_style = "numpy"
+
+[tool.coverage.run]
+omit = "test/demo"
+
