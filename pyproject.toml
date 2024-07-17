@@ -106,8 +106,6 @@ require-plugins = [
 ]
 docstring_style = "numpy"
 
-[tool.coverage.run]
-omit = ["test/demo"]
 
 [tool.deptry]
 pep621_dev_dependency_groups = ["doc", "lint", "test"]
