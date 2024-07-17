@@ -77,7 +77,7 @@ html_theme_options = {
 file = (pathlib.Path(__file__).parent / "examples.rst").resolve()
 with open(file, "a+", encoding="utf-8") as f:
     title = "Examples\n"
-    f.write("title")
+    f.write(title)
     f.write("="*len(title)+"\n")
     for demo in demos:
         f.write(f"{demo.replace("_", "\_")}\n")
