@@ -80,7 +80,7 @@ with open(file, "a+", encoding="utf-8") as f:
     f.write(title)
     f.write("="*len(title)+"\n")
     for demo in demos:
-        f.write(f"{demo.captalize().replace("_", " ")}\n")
+        f.write(f"{demo.capitalize().replace("_", " ")}\n")
         f.write("="*len(demo.replace("_", "\_"))+"\n\n")
         f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
         f.write(f"   :start-after: = {demo}\n")
