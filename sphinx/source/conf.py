@@ -79,7 +79,7 @@ with open(file, "a+", encoding="utf-8") as f:
     title = "Examples\n"
     f.write(title)
     f.write("="*len(title)+"\n")
-    for category, demos_list in demos.values():
+    for category, demos_list in demos.items():
         f.write(category+"\n")
         f.write("^"*len(category)+"\n\n")
         for demo in demos_list:
