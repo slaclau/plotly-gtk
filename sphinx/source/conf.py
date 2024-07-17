@@ -74,7 +74,7 @@ html_theme_options = {
     }
 }
 # -- Custom build scripts -------------------------------------------------
-file = (pathlib.Path(__file__).parent / "example.rst").resolve()
+file = (pathlib.Path(__file__).parent / "examples.rst").resolve()
 with open(file, "a+", encoding="utf-8") as f:
     f.write("Examples\n=\n\n)
     for demo in demos:
