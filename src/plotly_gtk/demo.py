@@ -18,9 +18,9 @@ scatter_demos = [
     "line_1",
     "line_2",
 ]
-demos = {"Scatter": scatter_demos}
 log_demos = ["log_1"]
-demos = scatter_demos + log_demos
+
+demos = {"Scatter": scatter_demos, "log": log_demos}
 
 
 def get_test_figure(reference):
