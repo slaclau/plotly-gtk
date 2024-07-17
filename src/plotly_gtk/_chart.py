@@ -11,7 +11,7 @@ from gi.repository import (  # pylint: disable=wrong-import-position,wrong-impor
     PangoCairo,
 )
 
-DEBUG = True
+DEBUG = False
 
 
 class _PlotlyGtk(Gtk.DrawingArea):
