@@ -1,6 +1,7 @@
 import os
+import pathlib
 import sys
-
+from plotly_gtk.demo import demos
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -72,3 +73,25 @@ html_theme_options = {
         "image_dark": "icon.png",
     }
 }
+# -- Custom build scripts -------------------------------------------------
+file = (pathlib.Path(__file__).parent / "examples.rst").resolve()
+with open(file, "a+", encoding="utf-8") as f:
+    title = "Examples\n"
+    f.write(title)
+    f.write("="*len(title)+"\n")
+    for category, demos_list in demos.items():
+        f.write(category+"\n")
+        f.write("^"*len(category)+"\n\n")
+        for demo in demos_list:
+            f.write(f"{demo.capitalize().replace("_", " ")}\n")
+            f.write("-"*len(demo)+"\n\n")
+            f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
+            f.write(f"   :start-after: = \"{demo}\n")
+            if demo == demos_list[-1]:
+                f.write("   :end-before: return fig\n\n")
+            else: 
+                f.write("   :end-before: elif\n\n")
+
+            f.write(f".. image:: examples/{demo}.png\n\n")
+            
+        

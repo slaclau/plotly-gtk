@@ -1,4 +1,4 @@
-name: GUI test
+name: Test
 
 on:
   workflow_call:
@@ -23,12 +23,17 @@ jobs:
       - name: Install python packages
         run: |
           pip install wheel
-          pip install -e .[test]
+          pip install -e .[dev]
       - name: Demo
         run: |
-          pytest test/demo/broadway -rP
-      - name: Upload results artifact
+          pytest -rP --cov-report html:pytest/coverage --cov=src test --html=pytest/report.html
+      - name: Upload demo artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test
+          name: demo
           path: test/demo/broadway/results
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: pytest
