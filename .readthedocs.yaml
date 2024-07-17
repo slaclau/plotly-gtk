@@ -13,10 +13,6 @@ build:
     post_checkout:
       - git fetch --unshallow || true
       - git fetch --all --tags || true
-    pre_build:
-      - pytest -rP --cov-report html:sphinx/source/prevuilt/coverage --cov=src test --html=sphinx/source/prevuilt/report.html  --ignore=test/demo
-      - mkdir sphinx/source/examples
-      - cp test/demo/broadway/results/* sphinx/source/examples/
 
 sphinx:
   configuration: sphinx/source/conf.py
@@ -29,4 +25,4 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - dev
+        - doc
