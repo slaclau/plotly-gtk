@@ -90,7 +90,7 @@ with open(file, "a+", encoding="utf-8") as f:
             if demo == demos_list[-1]:
                 f.write("   :end-before: return fig\n\n")
             else: 
-                f.write("   :end-before: el\n\n")
+                f.write("   :end-before: elif\n\n")
 
             f.write(f".. image:: examples/{demo}.png\n\n")
             
