@@ -18,6 +18,8 @@ permissions:
 jobs:
   test:
     uses: ./.github/workflows/test.yaml
+  lint:
+    uses: ./.github/workflows/lint.yaml
   # Build job
   build-docs:
     runs-on: ubuntu-latest
