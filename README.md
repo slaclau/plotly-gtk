@@ -1,9 +1,19 @@
 # plotly-gtk
+
+| Master |
+| - |
+| [![Checks](https://img.shields.io/github/actions/workflow/status/slaclau/plotly-gtk/main.yaml?logo=github&label=Checks)](https://github.com/slaclau/plotly-gtk/actions/workflows/main.yaml) |
+| [![codecov](https://img.shields.io/codecov/c/github/slaclau/plotly-gtk?logo=codecov&label=Coverage)](https://codecov.io/github/slaclau/plotly-gtk) |
+| [![codacy](https://img.shields.io/codacy/grade/db07fc38606a432dae8f2dc316ff6913?logo=codacy&label=Code%20quality)]() |
+
 ## Introdution
+
 GTK renderer for charts in plotly Figure or dict format
 
 ## Examples
+
 ### [Line and scatter plots](https://plotly.com/python/line-and-scatter/)
+
 <summary>Scatter plots with Plotly Express</summary>
 <details>
 
