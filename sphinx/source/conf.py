@@ -79,12 +79,16 @@ with open(file, "a+", encoding="utf-8") as f:
     title = "Examples\n"
     f.write(title)
     f.write("="*len(title)+"\n")
-    for demo in demos:
+    for category, demos_list in demos.values():
+    f.write(category+"\n")
+    f.write("^"*len(category)+"\n\n")
+    for demo in demos_list:
         f.write(f"{demo.capitalize().replace("_", " ")}\n")
-        f.write("-"*len(demo)+"\n\n")
-        f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
-        f.write(f"   :start-after: = \"{demo}\n")
-        f.write("   :end-before: el\n\n")
-        f.write(f".. image:: examples/{demo}.png\n\n")
-        
+            f.write("-"*len(demo)+"\n\n")
+            f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
+            f.write(f"   :start-after: = \"{demo}\n")
+            f.write("   :end-before: el\n")
+            f.write("   :end-before: return\n\n")
+            f.write(f".. image:: examples/{demo}.png\n\n")
+            
         
