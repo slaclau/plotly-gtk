@@ -76,7 +76,7 @@ html_theme_options = {
 # -- Custom build scripts -------------------------------------------------
 file = (pathlib.Path(__file__).parent / "examples.rst").resolve()
 with open(file, "a+", encoding="utf-8") as f:
-    f.write("Examples\n=\n\n)
+    f.write("Examples\n=\n\n")
     for demo in demos:
         f.write(f"{demo.replace("_", "\_")}\n-\n\n")
         f.write(".. literalinclude:: ../src/plotly_gtk/demo.py\n")
