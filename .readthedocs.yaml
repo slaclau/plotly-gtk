@@ -9,6 +9,14 @@ build:
   tools:
     python: "3.12"
   apt_packages: ["libgirepository1.0-dev", "libcairo2-dev", "pkg-config", "python3-dev", "gir1.2-gtk-4.0", "gir1.2-adw-1", "gir1.2-webkit-6.0", "make"]
+  jobs:
+    post_checkout:
+      - git fetch --unshallow || true
+      - git fetch --all --tags || true
+    pre_build:
+      - pytest -rP --cov-report html:sphinx/source/prevuilt/coverage --cov=src test --html=sphinx/source/prevuilt/report.html
+      - mkdir sphinx/source/examples
+      - cp test/demo/broadway/results/* sphinx/source/examples/
 
 sphinx:
   configuration: sphinx/source/conf.py
