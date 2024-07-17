@@ -1,3 +1,4 @@
+from itertools import chain
 import os
 import pathlib
 import subprocess
@@ -77,7 +78,7 @@ class DemoApplication(Adw.Application):
         thread.start()
 
 
-@pytest.mark.parametrize("demo", demos)
+@pytest.mark.parametrize("demo", chain(*demos.values()))
 def test_demo(demo, browser):
     app = DemoApplication(
         demo, browser, application_id=f"io.github.slaclau.plotly_gtk.{demo}"

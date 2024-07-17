@@ -15,15 +15,9 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   test:
-    uses: ./.github/workflows/gui.yaml
+    uses: ./.github/workflows/test.yaml
   # Build job
   build-docs:
     runs-on: ubuntu-latest
@@ -43,16 +37,21 @@ jobs:
       - name: Install apt packages
         run: |
           sudo apt update
-          sudo apt install libgirepository1.0-dev libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 make
+          sudo apt install libgirepository1.0-dev libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 make graphviz
       - name: Install python packages
         run: |
           pip install wheel
           pip install -e .[doc]
-      - name: Get test artifact
+      - name: Get demo artifact
         uses: actions/download-artifact@v4
         with:
-          name: test
-          path: docs/test
+          name: demo
+          path: sphinx/source/examples
+      - name: Get report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: report
+          path: sphinx/source/prebuilt
       - name: Build pages
         run: |
           cd sphinx
@@ -63,6 +62,9 @@ jobs:
           path: docs
   # Deployment job
   deploy-docs:
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
     if: github.ref_name == 'master'
     environment:
       name: github-pages

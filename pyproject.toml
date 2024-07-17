@@ -8,8 +8,9 @@ requires = ["setuptools>=64", "setuptools_scm>=8", "setuptools_scm_custom"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme"]
-test = ["plotly", "pytest", "pillow", "selenium"]
+doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme", "plotly"]
+test = ["plotly", "pytest", "pillow", "selenium","pytest-subtests", "pytest-cov", "pytest-html"]
+dev = ["plotly-gtk[doc, test]"]
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -103,3 +104,7 @@ require-plugins = [
     "flake8-bugbear",
 ]
 docstring_style = "numpy"
+
+[tool.coverage.run]
+omit = ["test/demo"]
+
