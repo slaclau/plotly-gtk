@@ -1,0 +1,175 @@
+name: "lint"
+
+on:
+  workflow_call:
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install -e .[lint]
+      - name: flake8
+        if: always()
+        run: |
+          flake8 src --format=json >> flake8.json
+      - name: flake8 report
+        if: always()
+        run: |
+          python scripts/flake82md.py flake8.json "flake8 report" >> flake8.md
+          cat flake8.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flake8
+          path: |
+            flake8.json
+            flake8.md
+ 
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install -e .[lint]
+      - name: mypy
+        if: always()
+        run: |
+          mypy --strict src | mypy-json-report parse --output-file mypy.json
+          exit ${PIPESTATUS[0]}
+      - name: mypy report
+        if: always()
+        run: |
+          python scripts/mypy2md.py mypy.json "mypy report" >> mypy.md
+          cat mypy.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy
+          path: |
+            mypy.json
+            mypy.md
+      
+  black:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install -e .[lint]
+      - name: black
+        if: always()
+        run: |
+          echo "# black report" >> black.md
+          echo "These files have not been formatted" >> black.md
+          black --check src &>> black.md
+      - name: black report
+        if: always()
+        run: |
+          sed -i "s/would reformat \/home\/runner\/work\/plotly-gtk\/plotly-gtk\///g" black.md
+          sed -i "s/_/\\_/g" black.md
+          cat black.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: black
+          path: black.md
+ 
+  isort:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install -e .[lint]
+      - name: isort
+        if: always()
+        run: |
+          echo "# isort report" >> isort.md
+          echo "These files have not been formatted" >> isort.md 
+          isort -c src &>> isort.md
+      - name: isort report
+        if: always()
+        run: |
+          sed -i "s/\/home\/runner\/work\/plotly-gtk\/plotly-gtk\///g" isort.md
+          cat isort.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isort
+          path: isort.md
+  deptry:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install -e .[lint]
+      - name: deptry
+        run: |
+          deptry src --json-output deptry.json
+      - name: deptry report
+        if: always()
+        run: |
+          python scripts/deptry2md.py deptry.json "deptry report" >> deptry.md
+          cat deptry.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deptry
+          path: |
+            deptry.json
+            deptry.md
