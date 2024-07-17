@@ -57,12 +57,11 @@ jobs:
       - name: Build pages
         run: |
           cd sphinx
-          make github
+          make html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: docs
-  # Deployment job
+          path: sphinx/build/html
   deploy-docs:
     concurrency:
       group: "pages"
