@@ -14,7 +14,7 @@ build:
       - git fetch --unshallow || true
       - git fetch --all --tags || true
     pre_build:
-      - pytest -rP --cov-report html:pytest/coverage --cov=src test --html=pytest/report.html --ignore=test/demo
+      - pytest -rP --html=pytest/report.html --cov-report html:pytest/coverage --cov=src --ignore=test/demo test
       - mkdir sphinx/source/prebuilt
       - cp -r pytest/* sphinx/source/prebuilt
 
