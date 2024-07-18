@@ -1,0 +1,31 @@
+name: Commitizen
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+jobs:
+  commitizen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install python packages
+        run: |
+          pip install commitizen
+
+      - name: Validate current commit (last commit) with commitizen
+        if: github.event_name == 'push'
+        run: cz check --rev-range origin/master..${{ github.sha }}
+
+      - name: Validate PR commits with commitizen
+        if: github.event_name == 'pull_request'
+        run: cz check --rev-range ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }}..${{ github.event.pull_request.head.sha }}
