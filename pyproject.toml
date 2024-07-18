@@ -108,3 +108,10 @@ docstring_style = "numpy"
 
 [tool.deptry]
 pep621_dev_dependency_groups = ["doc", "lint", "test"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "scm"
+major_version_zero = true
