@@ -1,11 +1,14 @@
-import math
 import numbers
 
 import numpy as np
 
 
 class Ticks:
-    ROUND_SET = {10: [2, 5, 10]}
+    ROUND_SET = {
+        10: [2, 5, 10],
+        "LOG1": [-0.046, 0, 0.301, 0.477, 0.602, 0.699, 0.778, 0.845, 0.903, 0.954, 1],
+        "LOG2": [-0.301, 0, 0.301, 0.699, 1],
+    }
 
     def __init__(self, layout, axis, length):
         self.layout = layout
@@ -51,31 +54,53 @@ class Ticks:
             # TODO: Finish
             tickset = self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
             frac = self.round_up(self.axis_layout["_range"][0] % 1, tickset, axrev)
-            return np.floor(self.axis_layout["_range"][0])
+            return np.floor(self.axis_layout["_range"][0]) + np.log(
+                np.round(np.power(10, frac), 1)
+            ) / np.log(10)
+        raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
+
+    def tick_increment(self, x: float, dtick: str, rev: bool) -> float:
+        sign = -1 if rev else 1
+        ttype = dtick[0]
+        dtnum = int(dtick[1:])
+        dtsigned = sign * dtnum
+
+        if ttype == "M":
+            raise NotImplementedError
+
+        if ttype == "L":
+            raise NotImplementedError
+
+        if ttype == "D":
+            tickset = self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
+            x2 = x + sign * 0.01
+            frac = self.round_up(x2 % 1, tickset, rev)
+            return np.floor(x2) + np.log(np.round(np.power(10, frac), 1)) / np.log(10)
+
+        raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
 
     def calculate(self):
         self.min = self.axis_layout["_range"][0]
         self.max = self.axis_layout["_range"][-1]
+        rev = self.min >= self.max
         self.prepare()
 
         if "tickmode" in self.axis_layout and self.axis_layout["tickmode"] == "array":
             return self.array_ticks()
 
-        if self.axis_layout["_type"] == "log":
-            self.axis_layout["_tickvals"] = np.power(
-                10,
-                np.arange(
-                    self.tick_first(),
-                    self.max,
-                    self.axis_layout["_dtick"],
-                ),
-            )
-        else:
+        if isinstance(self.axis_layout["_dtick"], numbers.Number):
             self.axis_layout["_tickvals"] = np.arange(
                 self.tick_first(),
                 self.max,
                 self.axis_layout["_dtick"],
             )
+        else:
+            x = self.tick_first()
+            self.axis_layout["_tickvals"] = np.array([x])
+            while x <= self.max if not rev else self.min:
+                x = self.tick_increment(x, self.axis_layout["_dtick"], rev)
+                np.append(self.axis_layout["_tickvals"], [x])
+            self.axis_layout["_tickvals"] = np.exp(self.axis_layout["_tickvals"])
         self.axis_layout["_ticktext"] = np.char.mod("%g", self.axis_layout["_tickvals"])
         return self.axis_layout["_tickvals"]
 
