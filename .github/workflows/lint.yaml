@@ -17,6 +17,8 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -37,6 +39,11 @@ jobs:
           path: |
             flake8.json
             flake8.md
+      - name: reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog -reporter=github-pr-review flake8.json
  
   mypy:
     runs-on: ubuntu-latest
@@ -51,6 +58,8 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -72,6 +81,11 @@ jobs:
           path: |
             mypy.json
             mypy.md
+      - name: reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog -reporter=github-pr-review mypy.json
       
   black:
     runs-on: ubuntu-latest
