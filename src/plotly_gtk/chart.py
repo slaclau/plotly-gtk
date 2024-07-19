@@ -2,9 +2,11 @@
 :class:`plotly.graph_objects.Figure` using GTK."""
 
 import datetime
+import numbers
 from datetime import timezone
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 
 from plotly_gtk._chart import _PlotlyGtk
@@ -178,14 +180,12 @@ class PlotlyGtk(Gtk.Overlay):
 
     def _prepare_data(self):
         for plot in self.data:
-            plot["x"] = [
-                (
-                    x.replace(tzinfo=timezone.utc).timestamp()
-                    if isinstance(x, datetime.datetime)
-                    else x
-                )
-                for x in plot["x"]
-            ]
+            if self._detect_axis_type(plot["x"]) == "date":
+                plot["x"] = np.array(plot["x"], dtype="datetime64")
+                plot["x"] = pd.to_datetime(plot["x"])
+                plot["x"] = [
+                    x.replace(tzinfo=timezone.utc).timestamp() for x in plot["x"]
+                ]
         plots = []
         for plot in self.data:
             if plot["type"] in ["scatter", "scattergl"]:
@@ -349,20 +349,18 @@ class PlotlyGtk(Gtk.Overlay):
         self.queue_allocate()
 
     def _update_layout(self):
-        xaxes = [
+        xaxes = {
             trace["xaxis"].replace("x", "xaxis")
             for trace in self.data
             if "xaxis" in trace
-        ]
-        yaxes = [
+        }
+        yaxes = {
             trace["yaxis"].replace("y", "yaxis")
             for trace in self.data
             if "yaxis" in trace
-        ]
-        xaxes.append("xaxis")
-        yaxes.append("yaxis")
-        xaxes = set(xaxes)
-        yaxes = set(yaxes)
+        }
+        xaxes.add("xaxis")
+        yaxes.add("yaxis")
 
         template = self.layout["template"]["layout"]
         defaults = dict(
@@ -513,13 +511,81 @@ class PlotlyGtk(Gtk.Overlay):
             ),
         )
         for xaxis in xaxes:
+            if "type" not in xaxis:
+                first_plot_on_axis = [
+                    trace
+                    for trace in self.data
+                    if trace["xaxis"] == xaxis.replace("axis", "")
+                ][0]
+                self.layout[xaxis]["_type"] = self._detect_axis_type(
+                    first_plot_on_axis["x"]
+                )
+            else:
+                self.layout[xaxis]["_type"] = self.layout[xaxis]["type"]
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
         for yaxis in yaxes:
+            if "type" not in yaxis:
+                first_plot_on_axis = [
+                    trace
+                    for trace in self.data
+                    if trace["yaxis"] == yaxis.replace("axis", "")
+                ][0]
+                self.layout[yaxis]["_type"] = self._detect_axis_type(
+                    first_plot_on_axis["y"]
+                )
+            else:
+                self.layout[yaxis]["_type"] = self.layout[yaxis]["type"]
             template[yaxis] = template["yaxis"]
             defaults[yaxis] = defaults["yaxis"]
         self.layout = update_dict(template, self.layout)
         self.layout = update_dict(defaults, self.layout)
+
+    @staticmethod
+    def _detect_axis_type(data):
+        rtn = None
+        if any(isinstance(i, list) or isinstance(i, np.ndarray) for i in data):
+            return "multicategory"
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
+
+        length = len(data)
+        if length >= 1000:
+            start = np.random.randint(0, length / 1000)
+            index = np.arange(start, length, length / 1000).astype(np.int32)
+            data = data[index]
+
+        data = set(data)
+
+        def to_type(d):
+            try:
+                d = np.datetime64(d)
+                return "date"
+            except ValueError:
+                if isinstance(d, numbers.Number):
+                    return "linear"
+                else:
+                    return "category"
+
+        data_types = [to_type(d) for d in data]
+        data_types = {d: data_types.count(d) for d in set(data_types)}
+        print(data_types)
+        if len(data_types) == 1:
+            return list(data_types)[0]
+        if "linear" not in data_types:
+            if data_types["date"] > data_types["category"]:
+                return "date"
+            return "category"
+
+        if "date" in data_types and data_types["date"] > 2 * data_types["linear"]:
+            return "date"
+        if (
+            "category" in data_types
+            and data_types["category"] > 2 * data_types["linear"]
+        ):
+            return "category"
+
+        return "linear"
 
     def _draw_buttons(self):
         if "updatemenus" not in self.layout:
