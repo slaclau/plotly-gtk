@@ -1,7 +1,7 @@
 [project]
 name = "plotly-gtk"
 dynamic = ["version", "readme"]
-dependencies = ["numpy", "pygobject", "pandas"]
+dependencies = ["numpy<2.0", "pygobject", "pandas"]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8", "setuptools_scm_custom"]
