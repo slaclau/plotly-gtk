@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme", "plotly"]
-lint = ["black", "isort", "flake8", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "pygobject-stubs", "deptry"]
+lint = ["black", "isort", "flake8", "flake8-pyproject", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "pygobject-stubs", "deptry"]
 test = ["plotly", "pytest", "pillow", "selenium","pytest-subtests", "pytest-cov", "pytest-html"]
 dev = ["plotly-gtk[doc, lint, test]"]
 
