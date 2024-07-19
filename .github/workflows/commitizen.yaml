@@ -20,7 +20,7 @@ jobs:
           cache: 'pip'
       - name: Install python packages
         run: |
-          pip install commitizen
+          pip install cz-trailers
 
       - name: Validate current commit (last commit) with commitizen
         if: github.event_name == 'push'

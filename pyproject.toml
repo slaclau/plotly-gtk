@@ -110,7 +110,7 @@ docstring_style = "numpy"
 pep621_dev_dependency_groups = ["doc", "lint", "test"]
 
 [tool.commitizen]
-name = "cz_conventional_commits"
+name = "cz-trailers"
 tag_format = "$version"
 version_scheme = "pep440"
 version_provider = "scm"
