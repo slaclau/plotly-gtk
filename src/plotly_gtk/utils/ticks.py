@@ -19,7 +19,7 @@ class Ticks:
         self.length = length
 
     def tick_first(self):
-        axrev = self.axis_layout["_range"][-1] < self.axis_layout["_range"][0];
+        axrev = self.axis_layout["_range"][-1] < self.axis_layout["_range"][0]
         round_func = np.floor if axrev else np.ceil
         if isinstance(self.axis_layout["_dtick"], numbers.Number):
             tmin = (
@@ -36,12 +36,23 @@ class Ticks:
             # TODO: Implement M type ticks
             raise NotImplementedError("M type ticks not implemented yet")
         if ttype == "L":
-            return np.log10(round_func((np.power(10, self.axis_layout["_range"][0]) - self.axis_layout["_tick0"]) / dtnum)  *dtnum + self.axis_layout["_tick0"])
+            return np.log10(
+                round_func(
+                    (
+                        np.power(10, self.axis_layout["_range"][0])
+                        - self.axis_layout["_tick0"]
+                    )
+                    / dtnum
+                )
+                * dtnum
+                + self.axis_layout["_tick0"]
+            )
         if ttype == "D":
             # TODO: Finish
             tickset = self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
             frac = self.round_up(self.axis_layout["_range"][0] % 1, tickset, axrev)
             return np.floor(self.axis_layout["_range"][0])
+
     def calculate(self):
         self.min = self.axis_layout["_range"][0]
         self.max = self.axis_layout["_range"][-1]
