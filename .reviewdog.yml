@@ -1,0 +1,7 @@
+runner:
+  flake8:
+    cmd: flake8 src
+    format: flake8
+  mypy:
+    cmd: mypy src
+    format: mypy
