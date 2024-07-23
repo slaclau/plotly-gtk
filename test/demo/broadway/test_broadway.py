@@ -89,6 +89,7 @@ def test_demo(demo, browser, capsys):
     img = Image.open(directory / f"{demo}.png")
     assert np.mean(img.convert("RGB").getdata()) < 0xFF
     out, err = capsys.readouterr()
+    print(out)
     assert not err
 
 if __name__ == "__main__":
