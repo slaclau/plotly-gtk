@@ -102,6 +102,7 @@ class Ticks:
                 np.append(self.axis_layout["_tickvals"], [x])
             self.axis_layout["_tickvals"] = np.exp(self.axis_layout["_tickvals"])
         self.axis_layout["_ticktext"] = np.char.mod("%g", self.axis_layout["_tickvals"])
+        print(self.axis_layout["_tickvals"])
         return self.axis_layout["_tickvals"]
 
     def prepare(self):
