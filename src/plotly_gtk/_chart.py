@@ -1,4 +1,5 @@
-"""Contains a private class to handle plotting for :class:`plotly_gtk.chart.PlotlyGTK`."""
+"""Contains a private class to handle plotting for
+:class:`plotly_gtk.chart.PlotlyGTK`."""
 
 import gi
 import numpy as np
@@ -23,8 +24,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
         self.set_draw_func(self._on_draw)
 
     def update(self, fig: dict[str, plotly_types.Data, plotly_types.Layout]):
-        """
-        Update the plot with a new figure.
+        """Update the plot with a new figure.
 
         Parameters
         ----------
@@ -263,9 +263,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         )
 
         if log_x and not ignore_log_x:
-            x = np.log(x)
+            x = np.log10(x)
         if log_y and not ignore_log_y:
-            y = np.log(y)
+            y = np.log10(y)
 
         x_pos = []
         y_pos = []
