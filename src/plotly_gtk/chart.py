@@ -87,7 +87,7 @@ class PlotlyGtk(Gtk.Overlay):
         for axis in axes:
             if "autorange" in self.layout[axis]:
                 autorange = self.layout[axis]["autorange"]
-            elif "range" in self.layout[axis] and len(self.layout[axis]["range"] == 2):
+            if "range" in self.layout[axis] and len(self.layout[axis]["range"]) == 2:
                 autorange = False
             else:
                 autorange = True
@@ -132,6 +132,16 @@ class PlotlyGtk(Gtk.Overlay):
                     _range[0] = _range[0] - 1
                     _range[-1] = _range[1] + 1
                 self.layout[axis]["_range"] = _range
+            else:
+                if self.layout[axis]["type"] == "log":
+                    self.layout[axis]["_range"] = np.array(
+                        [
+                            10 ** self.layout[axis]["range"][0],
+                            10 ** self.layout[axis]["range"][-1],
+                        ]
+                    )
+                else:
+                    self.layout[axis]["_range"] = np.array(self.layout[axis]["range"])
 
         # Do matching
         matched_to_axes = {
@@ -159,11 +169,31 @@ class PlotlyGtk(Gtk.Overlay):
                 continue
             if self.layout[axis]["_type"] == "log":
                 self.layout[axis]["_range"] = np.log10(self.layout[axis]["_range"])
+                range_length = (
+                    self.layout[axis]["_range"][-1] - self.layout[axis]["_range"][0]
+                )
+                if (
+                    "range" in self.layout[axis]
+                    and len(self.layout[axis]["range"]) == 2
+                ):
+                    range_addon = range_length * 0.001
+                else:
+                    range_addon = range_length * 0.125 / 2
+                self.layout[axis]["_range"] = [
+                    self.layout[axis]["_range"][0] - range_addon,
+                    self.layout[axis]["_range"][-1] + range_addon,
+                ]
             else:
                 range_length = (
                     self.layout[axis]["_range"][-1] - self.layout[axis]["_range"][0]
                 )
-                range_addon = range_length * 0.125 / 2
+                if (
+                    "range" in self.layout[axis]
+                    and len(self.layout[axis]["range"]) == 2
+                ):
+                    range_addon = range_length * 0.001
+                else:
+                    range_addon = range_length * 0.125 / 2
                 self.layout[axis]["_range"] = [
                     self.layout[axis]["_range"][0] - range_addon,
                     self.layout[axis]["_range"][-1] + range_addon,
@@ -543,7 +573,6 @@ class PlotlyGtk(Gtk.Overlay):
 
     @staticmethod
     def _detect_axis_type(data):
-        rtn = None
         if any(isinstance(i, list) or isinstance(i, np.ndarray) for i in data):
             return "multicategory"
         if not isinstance(data, np.ndarray):

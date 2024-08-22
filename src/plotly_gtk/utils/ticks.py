@@ -1,6 +1,9 @@
+import logging
 import numbers
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class Ticks:
@@ -11,98 +14,139 @@ class Ticks:
     }
 
     def __init__(self, layout, axis, length):
+        logger.debug(
+            f"Ticks.__init__(layout: {layout}, axis: {axis}, length: {length})"
+        )
         self.layout = layout
         self.axis = axis
         self.axis_layout = self.layout[axis]
-        self.min = self.axis_layout["_range"][0]
-        self.max = self.axis_layout["_range"][-1]
-        self.length = length
-
-    def update_length(self, length):
+        self.axis_layout["_range"][0] = self.axis_layout["_range"][0]
+        self.axis_layout["_range"][-1] = self.axis_layout["_range"][-1]
         self.length = length
 
     def tick_first(self):
+        logger.debug("Calling Ticks.tick_first")
         axrev = self.axis_layout["_range"][-1] < self.axis_layout["_range"][0]
         round_func = np.floor if axrev else np.ceil
+        logger.debug(f"_dtick: {self.axis_layout["_dtick"]}")
         if isinstance(self.axis_layout["_dtick"], numbers.Number):
             tmin = (
                 round_func(
-                    (self.min - self.axis_layout["_tick0"]) / self.axis_layout["_dtick"]
+                    (self.axis_layout["_range"][0] - self.axis_layout["_tick0"])
+                    / self.axis_layout["_dtick"]
                 )
                 * self.axis_layout["_dtick"]
                 + self.axis_layout["_tick0"]
             )
-            return tmin
-        ttype = self.axis_layout["_dtick"][0]
-        dtnum = int(self.axis_layout["_dtick"][1:])
-        if ttype == "M":
-            # TODO: Implement M type ticks
-            raise NotImplementedError("M type ticks not implemented yet")
-        if ttype == "L":
-            return np.log10(
-                round_func(
-                    (
-                        np.power(10, self.axis_layout["_range"][0])
-                        - self.axis_layout["_tick0"]
+        else:
+            ttype = self.axis_layout["_dtick"][0]
+            dtnum = int(self.axis_layout["_dtick"][1:])
+            if ttype == "M":
+                # TODO: Implement M type ticks
+                raise NotImplementedError("M type ticks not implemented yet")
+            elif ttype == "L":
+                tmin = np.log10(
+                    round_func(
+                        (
+                            np.power(10, self.axis_layout["_range"][0])
+                            - self.axis_layout["_tick0"]
+                        )
+                        / dtnum
                     )
-                    / dtnum
+                    * dtnum
+                    + self.axis_layout["_tick0"]
                 )
-                * dtnum
-                + self.axis_layout["_tick0"]
-            )
-        if ttype == "D":
-            # TODO: Finish
-            tickset = self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
-            frac = self.round_up(self.axis_layout["_range"][0] % 1, tickset, axrev)
-            return np.floor(self.axis_layout["_range"][0]) + np.log(
-                np.round(np.power(10, frac), 1)
-            ) / np.log(10)
-        raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
+            elif ttype == "D":
+                # TODO: Finish
+                tickset = (
+                    self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
+                )
+                tickset = self.ROUND_SET[
+                    "LOG2"
+                ]  # FIXME: temp fix - demo log_1 is returning wrong dtnum
+                frac = self.round_up(self.axis_layout["_range"][0] % 1, tickset, axrev)
+                tmin = np.floor(self.axis_layout["_range"][0]) + np.log(
+                    np.round(np.power(10, frac), 1)
+                ) / np.log(10)
+            else:
+                raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
+        logger.debug(f"Returning {tmin} from Ticks.tick_first")
+        return tmin
 
     def tick_increment(self, x: float, dtick: str, rev: bool) -> float:
+        logger.debug(
+            f"Calling Ticks.tick_increment(x: {x}, dtick: {dtick}, rev: {rev})"
+        )
         sign = -1 if rev else 1
         ttype = dtick[0]
         dtnum = int(dtick[1:])
-        dtsigned = sign * dtnum
+        # TODO: Do this: dtsigned = sign * dtnum
 
         if ttype == "M":
             raise NotImplementedError
-
-        if ttype == "L":
+        elif ttype == "L":
             raise NotImplementedError
-
-        if ttype == "D":
+        elif ttype == "D":
             tickset = self.ROUND_SET["LOG2"] if dtnum == 2 else self.ROUND_SET["LOG1"]
+            tickset = self.ROUND_SET[
+                "LOG2"
+            ]  # FIXME: temp fix - demo log_1 is returning wrong dtnum
             x2 = x + sign * 0.01
             frac = self.round_up(x2 % 1, tickset, rev)
-            return np.floor(x2) + np.log(np.round(np.power(10, frac), 1)) / np.log(10)
-
-        raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
+            inc = np.floor(x2) + np.log(np.round(np.power(10, frac), 1)) / np.log(10)
+        else:
+            raise ValueError(f"Unknown dtick: {self.axis_layout['_dtick']}")
+        logger.debug(f"Returning {inc} from Ticks.tick_increment")
+        assert isinstance(inc, float)
+        return inc
 
     def calculate(self):
-        self.min = self.axis_layout["_range"][0]
-        self.max = self.axis_layout["_range"][-1]
-        rev = self.min >= self.max
+        rev = self.axis_layout["_range"][0] >= self.axis_layout["_range"][-1]
         self.prepare()
 
         if "tickmode" in self.axis_layout and self.axis_layout["tickmode"] == "array":
             return self.array_ticks()
 
         if isinstance(self.axis_layout["_dtick"], numbers.Number):
+            logger.debug("Numeric dtick")
             self.axis_layout["_tickvals"] = np.arange(
                 self.tick_first(),
-                self.max,
+                self.axis_layout["_range"][-1],
                 self.axis_layout["_dtick"],
             )
         else:
+            logger.debug("Text dtick")
             x = self.tick_first()
-            self.axis_layout["_tickvals"] = np.array([x])
-            while x <= self.max if not rev else self.min:
+            _tickvals = np.array([x])
+            logger.debug(f"_range: {self.axis_layout["_range"]}")
+            while True:
                 x = self.tick_increment(x, self.axis_layout["_dtick"], rev)
-                np.append(self.axis_layout["_tickvals"], [x])
-            self.axis_layout["_tickvals"] = np.exp(self.axis_layout["_tickvals"])
-        self.axis_layout["_ticktext"] = np.char.mod("%g", self.axis_layout["_tickvals"])
-        print(self.axis_layout["_tickvals"])
+                if x >= (
+                    self.axis_layout["_range"][-1]
+                    if not rev
+                    else self.axis_layout["_range"][0]
+                ):
+                    break
+                _tickvals = np.append(_tickvals, [x])
+            logger.debug(f"Original _tickvals: {_tickvals}")
+            self.axis_layout["_tickvals"] = np.power(10, _tickvals)
+            logger.debug(f"Corrected _tickvals: {self.axis_layout["_tickvals"]}")
+        if isinstance(self.axis_layout["_dtick"], numbers.Number):
+            self.axis_layout["_ticktext"] = np.char.mod(
+                "%g", self.axis_layout["_tickvals"]
+            )
+        else:
+            _text = []
+            for _tick in self.axis_layout["_tickvals"]:
+                logval = np.log10(_tick)
+                if logval == np.floor(logval):
+                    _text.append(f"{_tick:g}")
+                else:
+                    _text.append(
+                        f"<sup>{_tick / np.power(10, np.floor(logval)):g}</sup>"
+                    )
+            self.axis_layout["_ticktext"] = _text
+
         return self.axis_layout["_tickvals"]
 
     def prepare(self):
@@ -115,13 +159,19 @@ class Ticks:
                 min_px = 40 if self.axis.startswith("y") else 80
                 nt = round(self.length / min_px)
                 nt = min(10, max(5, nt))
-            self.auto_ticks((self.max - self.min) / nt)
+            self.auto_ticks(
+                (self.axis_layout["_range"][-1] - self.axis_layout["_range"][0]) / nt
+            )
 
     @staticmethod
-    def round_up(value, rounding_set, rev=False):
+    def round_up(
+        value: float, rounding_set: list[float], rev: bool = False
+    ) -> float | int:
         # TODO: rev
         if value <= np.max(rounding_set):
-            return rounding_set[np.argwhere(np.array(rounding_set) > value)[0][0]]
+            rtn = rounding_set[np.argwhere(np.array(rounding_set) > value)[0][0]]
+            assert isinstance(rtn, float) or isinstance(rtn, int)
+            return rtn
         return max(rounding_set)
 
     @staticmethod
@@ -134,9 +184,9 @@ class Ticks:
             return np.power(v, np.floor(np.log(rough_dtick) / np.log(10)))
 
         if self.axis_layout["_type"] == "log":
-            print(rough_dtick)
             self.axis_layout["_tick0"] = 0
-            if rough_dtick > 0.7:
+            # FIXME: make this work
+            if False:  # rough_dtick > 0.7:
                 self.axis_layout["_dtick"] = np.ceil(rough_dtick)
             elif (
                 np.abs(self.axis_layout["_range"][-1] - self.axis_layout["_range"][0])
@@ -162,7 +212,6 @@ class Ticks:
                 )
             else:
                 self.axis_layout["_dtick"] = "D2" if rough_dtick > 0.3 else "D1"
-            print(self.axis_layout)
         else:
             self.axis_layout["_tick0"] = 0
             base = get_base(10)
