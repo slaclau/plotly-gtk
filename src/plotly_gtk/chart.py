@@ -63,8 +63,7 @@ class PlotlyGtk(Gtk.Overlay):
         self.connect("realize", lambda _: self.update(self.fig))
 
     def update(self, fig: dict[str, plotly_types.Data | plotly_types.Layout]):
-        """
-        Update the view.
+        """Update the view.
 
         Parameters
         ----------
@@ -261,8 +260,7 @@ class PlotlyGtk(Gtk.Overlay):
             plot["binned"] = True
 
     def automargin(self):
-        """
-        Calculate margin sizes.
+        """Calculate margin sizes.
 
         Raises
         ------

@@ -17,6 +17,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -51,6 +55,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -86,6 +94,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -121,6 +133,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -154,6 +170,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
@@ -190,6 +210,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: Install apt packages
+        run: |
+          sudo apt update
+          sudo apt install libgirepository1.0-dev
       - name: Install python packages
         run: |
           pip install -e .[lint]
