@@ -8,9 +8,10 @@ from itertools import chain
 
 import gi
 import numpy as np
-import pytest
 from PIL import Image
 from selenium import webdriver
+
+import pytest
 
 os.environ["BROADWAY_DISPLAY"] = ":5"
 gi.require_version("Gdk", "4.0")

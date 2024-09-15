@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from test import get_random_strings
 
 import numpy as np
-import pytest
 
+import pytest
 from plotly_gtk.chart import PlotlyGtk
 
 _50categories = get_random_strings(50)

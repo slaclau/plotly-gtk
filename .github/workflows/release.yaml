@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/p/plotly-gtk  # Replace <package-name> with your PyPI project name
     permissions:
       id-token: write
     steps:
@@ -23,7 +23,7 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       - name: Build
-        run: python -m build
+        run: pip install build && python -m build
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
