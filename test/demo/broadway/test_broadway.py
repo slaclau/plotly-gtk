@@ -79,7 +79,7 @@ class DemoApplication(Adw.Application):
 
 
 @pytest.mark.parametrize("demo", chain(*demos.values()))
-def test_demo(demo, browser):
+def test_demo(demo, browser, capsys):
     app = DemoApplication(
         demo, browser, application_id=f"io.github.slaclau.plotly_gtk.{demo}"
     )
@@ -88,6 +88,9 @@ def test_demo(demo, browser):
     directory = (pathlib.Path(__file__).parent / "results").resolve()
     img = Image.open(directory / f"{demo}.png")
     assert np.mean(img.convert("RGB").getdata()) < 0xFF
+    out, err = capsys.readouterr()
+    print(out)
+    assert not err
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

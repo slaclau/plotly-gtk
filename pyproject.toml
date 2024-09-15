@@ -1,7 +1,7 @@
 [project]
 name = "plotly-gtk"
 dynamic = ["version", "readme"]
-dependencies = ["numpy", "pygobject", "pandas"]
+dependencies = ["numpy<2.0", "pygobject", "pandas"]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8", "setuptools_scm_custom"]
@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme", "plotly"]
-lint = ["black", "isort", "flake8", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "pygobject-stubs", "deptry"]
+lint = ["black", "isort", "flake8", "flake8-pyproject", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "pygobject-stubs", "deptry"]
 test = ["plotly", "pytest", "pillow", "selenium","pytest-subtests", "pytest-cov", "pytest-html"]
 dev = ["plotly-gtk[doc, lint, test]"]
 
@@ -26,6 +26,7 @@ version_scheme = "[{tag}?{distance}==0:{next_tag}][.dev{distance}?{distance}>0]"
 local_scheme = "[+{node}?{distance}>0][[+?{distance}==0:.]d{node_date}?{dirty}==True]"
 
 [tool.mypy]
+exclude = "test"
 # Disallow dynamic typing
 disallow_any_unimported = true
 # disallow_any_expr = true

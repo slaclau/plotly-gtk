@@ -1,4 +1,5 @@
-"""Contains a private class to handle plotting for :class:`plotly_gtk.chart.PlotlyGTK`."""
+"""Contains a private class to handle plotting for
+:class:`plotly_gtk.chart.PlotlyGTK`."""
 
 import gi
 import numpy as np
@@ -23,8 +24,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
         self.set_draw_func(self._on_draw)
 
     def update(self, fig: dict[str, plotly_types.Data, plotly_types.Layout]):
-        """
-        Update the plot with a new figure.
+        """Update the plot with a new figure.
 
         Parameters
         ----------
@@ -85,16 +85,15 @@ class _PlotlyGtk(Gtk.DrawingArea):
         if "_range" not in self.layout[axis]:
             return
         if axis.startswith("x"):
-            self.layout[axis]["_ticksobject"].update_length(
-                (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
-                * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
-            )
+            self.layout[axis]["_ticksobject"].length = (
+                width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
+            ) * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
+
             self.layout[axis]["_ticksobject"].calculate()
         else:
-            self.layout[axis]["_ticksobject"].update_length(
-                (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
-                * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
-            )
+            self.layout[axis]["_ticksobject"].length = (
+                height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]
+            ) * (self.layout[axis]["domain"][-1] - self.layout[axis]["domain"][0])
             self.layout[axis]["_ticksobject"].calculate()
         if "anchor" in self.layout[axis] and self.layout[axis]["anchor"] != "free":
             anchor = (
@@ -180,7 +179,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
                     + self.layout[axis]["anchor"][1:]
                 )
                 y = self.layout[yaxis]["_range"][0]
-                x_pos, y_pos = self._calc_pos(x, y, width, height, axis, yaxis)
+                x_pos, y_pos = self._calc_pos(
+                    x, y, width, height, axis, yaxis, ignore_log_y=True
+                )
             else:
                 y_pos = self.layout["_margin"]["t"] + (
                     1 - self.layout[axis]["position"]
@@ -189,7 +190,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
             for tick, text in zip(x_pos, ticktext):
                 context.move_to(tick, y_pos)
-                layout.set_text(text)
+                layout.set_markup(text)
                 layout_size = layout.get_pixel_size()
                 context.rel_move_to(-layout_size[0] / 2, 0)
                 PangoCairo.show_layout(context, layout)
@@ -203,7 +204,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
                     + self.layout[axis]["anchor"][1:]
                 )
                 x = self.layout[xaxis]["_range"][0]
-                x_pos, y_pos = self._calc_pos(x, y, width, height, xaxis, axis)
+                x_pos, y_pos = self._calc_pos(
+                    x, y, width, height, xaxis, axis, ignore_log_x=True
+                )
             else:
                 x_pos = self.layout["_margin"]["l"] + self.layout[axis]["position"] * (
                     width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
@@ -212,7 +215,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
             for tick, text in zip(y_pos, ticktext):
                 context.move_to(x_pos, tick)
-                layout.set_text(text)
+                layout.set_markup(text)
                 layout_size = layout.get_pixel_size()
                 context.rel_move_to(-layout_size[0], -layout_size[1] / 2)
                 PangoCairo.show_layout(context, layout)
@@ -263,9 +266,9 @@ class _PlotlyGtk(Gtk.DrawingArea):
         )
 
         if log_x and not ignore_log_x:
-            x = np.log(x)
+            x = np.log10(x)
         if log_y and not ignore_log_y:
-            y = np.log(y)
+            y = np.log10(y)
 
         x_pos = []
         y_pos = []

@@ -3,6 +3,7 @@
   <component name="ProjectTasksOptions">
     <enabled-global>
       <option value="isort" />
+      <option value="docformatter" />
     </enabled-global>
   </component>
 </project>
