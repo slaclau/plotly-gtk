@@ -28,6 +28,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist
+          files: dist/*
       - name: Publish to PyPI
+        if: always()
         uses: pypa/gh-action-pypi-publish@release/v1
