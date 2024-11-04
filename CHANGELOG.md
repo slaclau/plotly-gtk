@@ -2,6 +2,12 @@
 
 ### Fixes
 
+- **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (4a9e844cca6448eb47fa3a73ceb9a7de0c6599b9)
+
+## 0.2.4 (2024-11-04)
+
+### Fixes
+
 - **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (0d4af06e6e4d0f0e3830e0094095966d112e4b50)
 
 ## 0.2.3 (2024-11-04)
