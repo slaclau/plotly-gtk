@@ -2,6 +2,12 @@
 
 ### Fixes
 
+- **release.yaml**: fix release.yaml permissions [slaclau](seb.laclau@gmail.com) (a329c189e73263945d0d5e13c04a9dd5c7e94a1c)
+
+## 0.2.2 (2024-11-04)
+
+### Fixes
+
 - **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (a9b6da071719e674be8ae9b2564579c0b846af90)
 
 ## 0.2.1 (2024-11-04)
