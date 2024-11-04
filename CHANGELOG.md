@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixes
+
+- **chart.py**: fix detecting axis type for default axes - i.e. when xaxis or yaxis is not defined [slaclau](seb.laclau@gmail.com) (e07917a88a4f52a8d1cd66c46cc29d6ac17aa295)
+
 ## 0.2.0 (2024-09-15)
 
 ### Features
