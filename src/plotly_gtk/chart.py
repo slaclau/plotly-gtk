@@ -541,28 +541,39 @@ class PlotlyGtk(Gtk.Overlay):
             ),
         )
         for xaxis in xaxes:
+            if xaxis not in self.layout:
+                self.layout[xaxis] = {}
             if "type" not in self.layout[xaxis]:
                 first_plot_on_axis = [
                     trace
                     for trace in self.data
-                    if trace["xaxis"] == xaxis.replace("axis", "")
+                    if "xaxis" not in trace
+                    or trace["xaxis"] == xaxis.replace("axis", "")
                 ][0]
-                self.layout[xaxis]["_type"] = self._detect_axis_type(
-                    first_plot_on_axis["x"]
+                self.layout[xaxis]["_type"] = (
+                    self._detect_axis_type(first_plot_on_axis["x"])
+                    if "x" in first_plot_on_axis
+                    else "linear"
                 )
             else:
                 self.layout[xaxis]["_type"] = self.layout[xaxis]["type"]
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
         for yaxis in yaxes:
+            if yaxis not in self.layout:
+                self.layout[yaxis] = {}
             if "type" not in self.layout[yaxis]:
                 first_plot_on_axis = [
                     trace
                     for trace in self.data
-                    if trace["yaxis"] == yaxis.replace("axis", "")
+                    if "yaxis" not in trace
+                    or trace["yaxis"] == yaxis.replace("axis", "")
                 ][0]
-                self.layout[yaxis]["_type"] = self._detect_axis_type(
-                    first_plot_on_axis["y"]
+                print(first_plot_on_axis)
+                self.layout[yaxis]["_type"] = (
+                    self._detect_axis_type(first_plot_on_axis["y"])
+                    if "y" in first_plot_on_axis
+                    else "linear"
                 )
             else:
                 self.layout[yaxis]["_type"] = self.layout[yaxis]["type"]
