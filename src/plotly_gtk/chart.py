@@ -367,6 +367,7 @@ class PlotlyGtk(Gtk.Overlay):
                     ) / pushmargin["y"]
                 else:
                     raise NotImplementedError
+                self.layout["_margin"]["t"] = max(self.layout["_margin"]["t"], new)
             if bottom:
                 if "y" in pushmargin and "yb" in pushmargin:
                     new = (
@@ -376,6 +377,7 @@ class PlotlyGtk(Gtk.Overlay):
                     ) / (pushmargin["y"] - 1)
                 else:
                     raise NotImplementedError
+                self.layout["_margin"]["b"] = max(self.layout["_margin"]["b"], new)
         self.queue_allocate()
 
     def _update_layout(self):
@@ -557,6 +559,8 @@ class PlotlyGtk(Gtk.Overlay):
                 )
             else:
                 self.layout[xaxis]["_type"] = self.layout[xaxis]["type"]
+            if "side" in self.layout[xaxis] and self.layout[xaxis]["side"] == "top":
+                self.layout[xaxis]["position"] = 1
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
         for yaxis in yaxes:
@@ -577,6 +581,8 @@ class PlotlyGtk(Gtk.Overlay):
                 )
             else:
                 self.layout[yaxis]["_type"] = self.layout[yaxis]["type"]
+            if "side" in self.layout[yaxis] and self.layout[yaxis]["side"] == "right":
+                self.layout[yaxis]["position"] = 1
             template[yaxis] = template["yaxis"]
             defaults[yaxis] = defaults["yaxis"]
         self.layout = update_dict(template, self.layout)

@@ -203,7 +203,12 @@ class _PlotlyGtk(Gtk.DrawingArea):
                     + "axis"
                     + self.layout[axis]["anchor"][1:]
                 )
-                x = self.layout[xaxis]["_range"][0]
+                x = (
+                    self.layout[xaxis]["_range"][-1]
+                    if "side" in self.layout[axis]
+                    and self.layout[axis]["side"] == "right"
+                    else self.layout[xaxis]["_range"][0]
+                )
                 x_pos, y_pos = self._calc_pos(
                     x, y, width, height, xaxis, axis, ignore_log_x=True
                 )
@@ -217,7 +222,10 @@ class _PlotlyGtk(Gtk.DrawingArea):
                 context.move_to(x_pos, tick)
                 layout.set_markup(text)
                 layout_size = layout.get_pixel_size()
-                context.rel_move_to(-layout_size[0], -layout_size[1] / 2)
+                if "side" in self.layout[axis] and self.layout[axis]["side"] == "right":
+                    context.rel_move_to(0, -layout_size[1] / 2)
+                else:
+                    context.rel_move_to(-layout_size[0], -layout_size[1] / 2)
                 PangoCairo.show_layout(context, layout)
 
     def _draw_axes(self, context, width, height):
