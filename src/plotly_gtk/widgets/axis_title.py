@@ -2,6 +2,7 @@ import gi
 
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
+
 from typing import TYPE_CHECKING
 
 from gi.repository import Gdk, Gtk, Pango  # noqa: E402
@@ -11,6 +12,7 @@ from plotly_gtk.widgets.base import Base
 
 if TYPE_CHECKING:
     from plotly_gtk.chart import PlotlyGtk
+
 
 Spec = None | list["Spec"] | dict[str, "Spec"]
 
@@ -26,7 +28,8 @@ class AxisTitle(Base):
         tickfont = parse_font(tickfont)
         metrics = context.get_metrics(tickfont)
 
-        self.label = Gtk.Label(label=axis["title"]["text"])
+        self.label = Gtk.Label()
+        self.label.set_markup(axis["title"]["text"])
         self.append(self.label)
 
         if axis_letter == "x":
@@ -64,10 +67,10 @@ class AxisTitle(Base):
             xoffset = (
                 -standoff - ticklen - font_extra - x_size_error
                 if axis["side"] == "left"
-                else standoff + ticklen + font_extra + x_size_error
+                else standoff + ticklen - font_extra + x_size_error
             )
             yoffset = 0
-            angle = 270 if axis["side"] == "left" else 90
+            angle = 270  # angle = 270 if axis["side"] == "left" else 90
             self.set_orientation(Gtk.Orientation.VERTICAL)
         else:
             return
