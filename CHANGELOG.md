@@ -1,26 +1,12 @@
-## Unreleased
+## 0.2.6 (2024-11-05)
 
-### Fixes
+## 0.2.5 (2024-11-05)
 
-- **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (4a9e844cca6448eb47fa3a73ceb9a7de0c6599b9)
+## 0.2.4 (2024-11-05)
 
-## 0.2.4 (2024-11-04)
+## 0.2.3 (2024-11-05)
 
-### Fixes
-
-- **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (0d4af06e6e4d0f0e3830e0094095966d112e4b50)
-
-## 0.2.3 (2024-11-04)
-
-### Fixes
-
-- **release.yaml**: fix release.yaml permissions [slaclau](seb.laclau@gmail.com) (a329c189e73263945d0d5e13c04a9dd5c7e94a1c)
-
-## 0.2.2 (2024-11-04)
-
-### Fixes
-
-- **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (a9b6da071719e674be8ae9b2564579c0b846af90)
+## 0.2.2 (2024-11-05)
 
 ## 0.2.1 (2024-11-04)
 
