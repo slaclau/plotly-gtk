@@ -25,7 +25,33 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yaml
   release:
-    uses: ./.github/workflows/release.yaml
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/plotly-gtk  # Replace <package-name> with your PyPI project name
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Build
+        run: pip install build && python -m build
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+      - name: Publish to PyPI
+        if: always()
+        uses: pypa/gh-action-pypi-publish@release/v1
   # Build job
   build-docs:
     runs-on: ubuntu-latest
