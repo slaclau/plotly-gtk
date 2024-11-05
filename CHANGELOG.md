@@ -2,6 +2,12 @@
 
 ### Fixes
 
+- **main.yaml**: move contents of release.yaml to main.yaml [slaclau](seb.laclau@gmail.com) (be4091932f3b61765a4c08a851e8e920533d3d17)
+
+## 0.2.5 (2024-11-04)
+
+### Fixes
+
 - **release.yaml**: ensure release.yaml runs on tags [slaclau](seb.laclau@gmail.com) (4a9e844cca6448eb47fa3a73ceb9a7de0c6599b9)
 
 ## 0.2.4 (2024-11-04)
