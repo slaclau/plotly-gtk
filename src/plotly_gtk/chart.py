@@ -102,6 +102,16 @@ class PlotlyGtk(Gtk.Overlay):
                 and ("visible" not in plot or plot["visible"])
                 and ("_visible" not in plot or plot["_visible"])
             ]
+            hidden_plots_on_axis = [
+                plot
+                for plot in self.data
+                if f"{axis_letter}axis" in plot
+                and plot[f"{axis_letter}axis"] == axis.replace("axis", "")
+                and ("visible" not in plot or plot["visible"])
+                and ("_visible" not in plot or plot["_visible"])
+            ]
+            if len(plots_on_axis) > 1:
+                plots_on_axis = hidden_plots_on_axis
             if plots_on_axis == []:
                 continue
 
