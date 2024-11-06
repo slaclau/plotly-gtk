@@ -81,20 +81,18 @@ file = (pathlib.Path(__file__).parent / "examples.rst").resolve()
 with open(file, "a+", encoding="utf-8") as f:
     title = "Examples\n"
     f.write(title)
-    f.write("="*len(title)+"\n")
+    f.write("=" * len(title) + "\n")
     for category, demos_list in demos.items():
-        f.write(category+"\n")
-        f.write("^"*len(category)+"\n\n")
+        f.write(category + "\n")
+        f.write("^" * len(category) + "\n\n")
         for demo in demos_list:
             f.write(f"{demo.capitalize().replace("_", " ")}\n")
-            f.write("-"*len(demo)+"\n\n")
+            f.write("-" * len(demo) + "\n\n")
             f.write(".. literalinclude:: ../../src/plotly_gtk/demo.py\n")
-            f.write(f"   :start-after: = \"{demo}\n")
+            f.write(f'   :start-after: = "{demo}\n')
             if demo == demos_list[-1]:
                 f.write("   :end-before: return fig\n\n")
-            else: 
+            else:
                 f.write("   :end-before: elif\n\n")
 
             f.write(f".. image:: examples/{demo}.png\n\n")
-            
-        

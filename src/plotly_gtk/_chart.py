@@ -242,6 +242,8 @@ class _PlotlyGtk(Gtk.DrawingArea):
         domain = self.layout[axis]["domain"]  # pylint: disable=unused-variable
         position = self.layout[axis]["position"]  # pylint: disable=unused-variable
 
+        print(f"{axis}: {domain}")
+
         context.line_to(
             self.layout["_margin"]["l"], height - self.layout["_margin"]["b"]
         )

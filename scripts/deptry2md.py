@@ -1,7 +1,7 @@
 import json
 import sys
 
-codes_dict={"DEP002": "Project should not contain unused dependencies"}
+codes_dict = {"DEP002": "Project should not contain unused dependencies"}
 
 with open(sys.argv[1]) as f:
     data = json.load(f)
@@ -12,7 +12,7 @@ with open(sys.argv[1]) as f:
         if code in codes_dict:
             print(f"## {code}: {codes_dict[code]}")
         else:
-            print(f"# {code}")  
+            print(f"# {code}")
         modules = [d["module"] for d in data if d["error"]["code"] == code]
         for module in modules:
             print(module)
