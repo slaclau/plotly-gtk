@@ -100,7 +100,6 @@ class PlotlyGtk(Gtk.Overlay):
                 if f"{axis_letter}axis" in plot
                 and plot[f"{axis_letter}axis"] == axis.replace("axis", "")
                 and ("visible" not in plot or plot["visible"])
-                and ("_visible" not in plot or plot["_visible"])
             ]
             hidden_plots_on_axis = [
                 plot
@@ -464,6 +463,7 @@ class PlotlyGtk(Gtk.Overlay):
             ),
             margin=dict(autoexpand=True, t=100, l=80, r=80, b=80),
             xaxis=dict(
+                anchor="y",
                 automargin=True,
                 autorange=True,
                 autotickangles=[0, 30, 90],
@@ -508,6 +508,7 @@ class PlotlyGtk(Gtk.Overlay):
                 zerolinewidth=1,
             ),
             yaxis=dict(
+                anchor="x",
                 automargin=True,
                 autorange=True,
                 autotickangles=[0, 30, 90],
@@ -569,7 +570,11 @@ class PlotlyGtk(Gtk.Overlay):
                 )
             else:
                 self.layout[xaxis]["_type"] = self.layout[xaxis]["type"]
-            if "side" in self.layout[xaxis] and self.layout[xaxis]["side"] == "top":
+            if (
+                "side" in self.layout[xaxis]
+                and self.layout[xaxis]["side"] == "top"
+                and "position" not in self.layout[xaxis]
+            ):
                 self.layout[xaxis]["position"] = 1
             template[xaxis] = template["xaxis"]
             defaults[xaxis] = defaults["xaxis"]
@@ -583,7 +588,6 @@ class PlotlyGtk(Gtk.Overlay):
                     if "yaxis" not in trace
                     or trace["yaxis"] == yaxis.replace("axis", "")
                 ][0]
-                print(first_plot_on_axis)
                 self.layout[yaxis]["_type"] = (
                     self._detect_axis_type(first_plot_on_axis["y"])
                     if "y" in first_plot_on_axis
@@ -591,7 +595,11 @@ class PlotlyGtk(Gtk.Overlay):
                 )
             else:
                 self.layout[yaxis]["_type"] = self.layout[yaxis]["type"]
-            if "side" in self.layout[yaxis] and self.layout[yaxis]["side"] == "right":
+            if (
+                "side" in self.layout[yaxis]
+                and self.layout[yaxis]["side"] == "right"
+                and "position" not in self.layout[yaxis]
+            ):
                 self.layout[yaxis]["position"] = 1
             template[yaxis] = template["yaxis"]
             defaults[yaxis] = defaults["yaxis"]

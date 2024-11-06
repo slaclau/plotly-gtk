@@ -32,12 +32,27 @@ class AxisTitle(Base):
         self.label.set_markup(axis["title"]["text"])
         self.append(self.label)
 
+        anchor_axis = (
+            "free"
+            if "anchor" not in axis or axis["anchor"] == "free"
+            else (axis["anchor"][0] + "axis" + axis["anchor"][1:])
+        )
+        position = (
+            axis["position"]
+            if "anchor" not in axis or anchor_axis == "free"
+            else (
+                plot.layout[anchor_axis]["domain"][0]
+                if axis["side"] == "left" or axis["side"] == "bottom"
+                else plot.layout[anchor_axis]["domain"][-1]
+            )
+        )
+
         if axis_letter == "x":
             font_extra = (metrics.get_ascent() + metrics.get_descent()) / Pango.SCALE
 
             orientation = "h"
             x = (axis["domain"][0] + axis["domain"][-1]) / 2
-            y = axis["position"]
+            y = position
             xanchor = "center"
             yanchor = "top" if axis["side"] == "bottom" else "bottom"
             xoffset = 0
@@ -56,7 +71,7 @@ class AxisTitle(Base):
                 font_extra = max(layout.get_pixel_size()[0], font_extra)
 
             orientation = "v"
-            x = axis["position"]
+            x = position
             y = (axis["domain"][0] + axis["domain"][-1]) / 2
             xanchor = "right" if axis["side"] == "left" else "left"
             yanchor = "middle"
@@ -67,7 +82,7 @@ class AxisTitle(Base):
             xoffset = (
                 -standoff - ticklen - font_extra - x_size_error
                 if axis["side"] == "left"
-                else standoff + ticklen - font_extra + x_size_error
+                else standoff + ticklen + font_extra + x_size_error
             )
             yoffset = 0
             angle = 270  # angle = 270 if axis["side"] == "left" else 90
