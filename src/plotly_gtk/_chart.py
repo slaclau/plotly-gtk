@@ -237,20 +237,76 @@ class _PlotlyGtk(Gtk.DrawingArea):
         if "linecolor" not in self.layout[axis]:
             return
         context.set_source_rgb(*parse_color(self.layout[axis]["linecolor"]))
-        # TODO: finish this
-        axis_letter = axis[0 : axis.find("axis")]  # pylint: disable=unused-variable
-        domain = self.layout[axis]["domain"]  # pylint: disable=unused-variable
-        position = self.layout[axis]["position"]  # pylint: disable=unused-variable
 
-        print(f"{axis}: {domain}")
+        axis_letter = axis[0 : axis.find("axis")]
+        overlaying_axis = (
+            (
+                self.layout[axis]["overlaying"][0]
+                + "axis"
+                + self.layout[axis]["overlaying"][1:]
+            )
+            if "overlaying" in self.layout[axis]
+            else ""
+        )
+        anchor_axis = (
+            "free"
+            if self.layout[axis]["anchor"] == "free"
+            else (
+                self.layout[axis]["anchor"][0]
+                + "axis"
+                + self.layout[axis]["anchor"][1:]
+            )
+        )
+        domain = (
+            self.layout[axis]["domain"]
+            if "overlaying" not in self.layout[axis]
+            else self.layout[overlaying_axis]["domain"]
+        )
+        position = (
+            self.layout[axis]["position"]
+            if anchor_axis == "free"
+            else (
+                self.layout[anchor_axis]["domain"][0]
+                if self.layout[axis]["side"] == "left"
+                or self.layout[axis]["side"] == "bottom"
+                else self.layout[anchor_axis]["domain"][-1]
+            )
+        )
 
-        context.line_to(
-            self.layout["_margin"]["l"], height - self.layout["_margin"]["b"]
-        )
-        context.line_to(
-            width - self.layout["_margin"]["r"],
-            height - self.layout["_margin"]["b"],
-        )
+        if axis_letter == "x":
+            context.move_to(
+                self.layout["_margin"]["l"]
+                + domain[0]
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                self.layout["_margin"]["t"]
+                + (1 - position)
+                * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
+            )
+            context.line_to(
+                self.layout["_margin"]["l"]
+                + domain[-1]
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                self.layout["_margin"]["t"]
+                + (1 - position)
+                * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
+            )
+        elif axis_letter == "y":
+            context.move_to(
+                self.layout["_margin"]["l"]
+                + position
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                self.layout["_margin"]["t"]
+                + (1 - domain[0])
+                * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
+            )
+            context.line_to(
+                self.layout["_margin"]["l"]
+                + position
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                self.layout["_margin"]["t"]
+                + (1 - domain[-1])
+                * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
+            )
         context.stroke()
 
     def _calc_pos(
@@ -283,14 +339,36 @@ class _PlotlyGtk(Gtk.DrawingArea):
         x_pos = []
         y_pos = []
 
+        x_overlaying_axis = (
+            (xaxis["overlaying"][0] + "axis" + xaxis["overlaying"][1:])
+            if "overlaying" in xaxis
+            else ""
+        )
+        y_overlaying_axis = (
+            (yaxis["overlaying"][0] + "axis" + yaxis["overlaying"][1:])
+            if "overlaying" in yaxis
+            else ""
+        )
+
+        xdomain = (
+            xaxis["domain"]
+            if "overlaying" not in xaxis
+            else self.layout[x_overlaying_axis]["domain"]
+        )
+        ydomain = (
+            yaxis["domain"]
+            if "overlaying" not in yaxis
+            else self.layout[y_overlaying_axis]["domain"]
+        )
+
         if xaxis is not None:
             xaxis_start = (
-                xaxis["domain"][0]
+                xdomain[0]
                 * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
                 + self.layout["_margin"]["l"]
             )
             xaxis_end = (
-                xaxis["domain"][-1]
+                xdomain[-1]
                 * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
                 + self.layout["_margin"]["l"]
             )
@@ -303,13 +381,13 @@ class _PlotlyGtk(Gtk.DrawingArea):
 
         if yaxis is not None:
             yaxis_start = (
-                -(yaxis["domain"][0])
+                -(ydomain[0])
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
                 + height
                 - self.layout["_margin"]["b"]
             )
             yaxis_end = (
-                -(yaxis["domain"][-1])
+                -(ydomain[-1])
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
                 + height
                 - self.layout["_margin"]["b"]
