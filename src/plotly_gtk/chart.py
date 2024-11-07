@@ -662,6 +662,11 @@ class PlotlyGtk(Gtk.Overlay):
                 continue
             overlaying_axis = (
                 self.layout[axis]["_overlaying"]
+                if "_overlaying" in self.layout[axis]
+                else ""
+            )
+            original_overlaying_axis = (
+                self.layout[axis]["overlaying"][0] + "axis" + self.layout[axis]["overlaying"][1:]
                 if "overlaying" in self.layout[axis]
                 else ""
             )
@@ -677,9 +682,11 @@ class PlotlyGtk(Gtk.Overlay):
             )
             domain = (
                 self.layout[axis]["domain"]
-                if "overlaying" not in self.layout[axis] or overlaying_axis == ""
-                else self.layout[overlaying_axis]["domain"]
+                if "overlaying" not in self.layout[axis]
+                or original_overlaying_axis == ""
+                else self.layout[original_overlaying_axis]["domain"]
             )
+
             position = (
                 self.layout[overlaying_axis]["_position"]
                 if "autoshift" in self.layout[axis]
