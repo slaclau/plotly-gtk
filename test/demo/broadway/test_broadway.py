@@ -70,7 +70,7 @@ class DemoApplication(Adw.Application):
                 directory = (pathlib.Path(__file__).parent / "results").resolve()
 
                 app.browser.get("http://127.0.0.1:8085/")
-                time.sleep(1)
+                time.sleep(2)
                 app.browser.save_screenshot(directory / f"{app.demo}.png")
             GLib.idle_add(end)
             return False
