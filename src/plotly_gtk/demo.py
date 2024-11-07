@@ -26,7 +26,7 @@ multiple_axes_demos = [
     "multiple_y_axes_subplots",
     "multiple_axes",
     "autoshift",
-    #    "shift_by_pixels",
+    "shift_by_pixels",
     #    "syncticks",
 ]
 
@@ -290,6 +290,44 @@ def _get_multiple_axes_test_figure(reference):
         fig.update_layout(
             title_text="Shifting y-axes with autoshift",
         )
+    elif reference == "shift_by_pixels":
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(x=[1, 2, 3], y=[4, 5, 6], name="yaxis data"))
+
+        fig.add_trace(go.Scatter(x=[2, 3, 4], y=[40, 50, 60], name="yaxis2 data", yaxis="y2"))
+
+        fig.add_trace(
+            go.Scatter(x=[4, 5, 6], y=[1000, 2000, 3000], name="yaxis3 data", yaxis="y3")
+        )
+
+        fig.add_trace(
+            go.Scatter(x=[3, 4, 5], y=[400, 500, 600], name="yaxis4 data", yaxis="y4")
+        )
+
+        fig.update_layout(
+            xaxis=dict(domain=[0.25, 0.75]),
+            yaxis=dict(
+                title="yaxis title",
+            ),
+            yaxis2=dict(
+                title="yaxis2 title",
+                overlaying="y",
+                side="right",
+            ),
+            yaxis3=dict(title="yaxis3 title", anchor="free", overlaying="y", autoshift=True),
+            yaxis4=dict(
+                title="yaxis4 title",
+                anchor="free",
+                overlaying="y",
+                autoshift=True,
+                shift=-100,
+            ),
+        )
+
+        fig.update_layout(
+            title_text="Shifting y-axes by a specific number of pixels",
+        )
     else:
         return
     return fig
@@ -300,7 +338,7 @@ def test(app):
     paned = Gtk.Paned()
     window.set_content(paned)
 
-    fig = get_test_figure("autoshift")
+    fig = get_test_figure("shift_by_pixels")
     print(fig)
     # print(fig["layout"]["template"])
 
