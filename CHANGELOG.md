@@ -1,4 +1,26 @@
-## Unreleased
+## 0.3.0 (2024-11-07)
+
+### Features
+
+- **demo**: add demo for plotly shift axes by a number of pixels (#14) [slaclau](seb.laclau@gmail.com) (53e0c369cf5c3701b18d52d6134f6dceacc3624e)
+- implement functionality required for plotly autoshift (#14) [slaclau](seb.laclau@gmail.com) (04b4afa9961253d25b437a039cfa55ea4ade2e73)
+- implement functionality required for plotly multiple axes (#14) [slaclau](seb.laclau@gmail.com) (6242b83b97b21c89167418b4c38af2051d1bd419)
+- implement functionality required for plotly multiple y axes subplots demo (#14) [slaclau](seb.laclau@gmail.com) (df1e20575ed9d9bad0524baeca77352ae91c27de)
+- implement functionality required for plotly two y axis demo (#14) [slaclau](seb.laclau@gmail.com) (4851e86bbb03301e6fe7cf62a601b29e44da3fa6)
+- **ticks**: SI format for ticks [slaclau](seb.laclau@gmail.com) (6534107fbeb991484c42417d547abf06f5c15122)
+
+### Fixes
+
+- **chart**: correctly update domain for overlaying axes on off side [slaclau](seb.laclau@gmail.com) (f00c64d6f9bae8b761c0a03af6a57480430799b0)
+- **chart**: fix axis ordering when no y axes on one side [slaclau](seb.laclau@gmail.com) (f5f7796b5b19a8ae4ed34cc3cdb96605200f5d19)
+- **ticks**: change si prefix thresholds to better match plotly [slaclau](seb.laclau@gmail.com) (371c9ba8b439e692f06eca9e577aef0172f138bb)
+- **chart**: don't change axis range on hide if only one trace on axis [slaclau](seb.laclau@gmail.com) (6a3c2be917850c2183e4c7d54c48eaf4d09ac19a)
+
+### Build
+
+- **pyproject.toml**: add prefixed to deps [slaclau](seb.laclau@gmail.com) (ad46ba7efa43b40daaaafc5420a69113a793ca04)
+
+## 0.2.6 (2024-11-05)
 
 ## 0.2.5 (2024-11-05)
 
