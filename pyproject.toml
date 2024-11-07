@@ -1,7 +1,7 @@
 [project]
 name = "plotly-gtk"
 dynamic = ["version", "readme"]
-dependencies = ["numpy<2.0", "pygobject", "pandas"]
+dependencies = ["numpy<2.0", "pygobject", "pandas", "prefixed"]
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=8", "setuptools_scm_custom"]
@@ -10,11 +10,11 @@ build-backend = "setuptools.build_meta"
 [project.optional-dependencies]
 doc = ["pylint", "sphinx", "sphinx-pyreverse", "pydata-sphinx-theme", "sphinx-rtd-theme", "plotly"]
 lint = ["black", "isort", "flake8", "flake8-pyproject", "flake8-pylint", "flake8-json", "flake8-bugbear", "mypy", "mypy-json-report", "pygobject-stubs", "deptry"]
-test = ["plotly", "pytest", "pillow", "selenium","pytest-subtests", "pytest-cov", "pytest-html"]
+test = ["plotly", "pytest", "pillow", "selenium", "pytest-subtests", "pytest-cov", "pytest-html"]
 dev = ["plotly-gtk[doc, lint, test]"]
 
 [tool.setuptools.dynamic]
-readme = {file = "README.md", content-type = "text/markdown"}
+readme = { file = "README.md", content-type = "text/markdown" }
 
 [tool.setuptools_scm]
 version_scheme = "setuptools_scm_custom:custom"
@@ -100,7 +100,7 @@ extend-ignore = [
 extend-exclude = [
 ]
 require-plugins = [
-#    "flake8-pydocstyle",
+    #    "flake8-pydocstyle",
     "flake8-pylint",
     "flake8-json",
     "flake8-bugbear",
