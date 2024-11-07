@@ -38,7 +38,7 @@ class AxisTitle(Base):
             else (axis["anchor"][0] + "axis" + axis["anchor"][1:])
         )
         position = (
-            axis["position"]
+            axis["_position"]
             if "anchor" not in axis or anchor_axis == "free"
             else (
                 plot.layout[anchor_axis]["domain"][0]
@@ -83,7 +83,7 @@ class AxisTitle(Base):
                 -standoff - ticklen - font_extra - x_size_error
                 if axis["side"] == "left"
                 else standoff + ticklen + font_extra + x_size_error
-            )
+            ) + axis["_shift"]
             yoffset = 0
             angle = 270  # angle = 270 if axis["side"] == "left" else 90
             self.set_orientation(Gtk.Orientation.VERTICAL)

@@ -73,6 +73,7 @@ class PlotlyGtk(Gtk.Overlay):
             A dictionary representing a plotly figure
         """
         self._update_ranges()
+        self._update_positions_and_domains()
         for overlay in self.overlays:
             self.remove_overlay(overlay)
         self.overlays = []
@@ -605,6 +606,131 @@ class PlotlyGtk(Gtk.Overlay):
             defaults[yaxis] = defaults["yaxis"]
         self.layout = update_dict(template, self.layout)
         self.layout = update_dict(defaults, self.layout)
+
+    def _update_positions_and_domains(self):
+        axes = [k for k in self.layout if "axis" in k]
+        axes_order = []
+        overlayed = []
+        for axis in axes:
+            if "overlaying" in self.layout[axis]:
+                ax = self.layout[axis]["overlaying"]
+                overlayed.append(ax[0] + "axis" + ax[1:])
+        overlayed = set(overlayed)
+        for axis in overlayed:
+            overlayed_by = [
+                k
+                for k in axes
+                if "overlaying" in self.layout[k]
+                and self.layout[k]["overlaying"] == axis.replace("axis", "")
+            ]
+            left = [
+                k
+                for k in overlayed_by
+                if "side" in self.layout[k]
+                and self.layout[k]["side"] == "left"
+                or "side" not in self.layout[k]
+            ]
+            right = [
+                k
+                for k in overlayed_by
+                if "side" in self.layout[k] and self.layout[k]["side"] == "right"
+            ]
+            right = sorted(right)
+            left = sorted(left)
+
+            if "side" in self.layout[axis] and self.layout[axis]["side"] == "right":
+                right = [axis] + right
+            else:
+                left = [axis] + left
+
+            for side in [left, right]:
+                self.layout[side[0]]["_overlaying"] = ""
+                for i in range(1, len(side)):
+                    self.layout[side[i]]["_overlaying"] = side[i - 1]
+
+            axes_order += left
+            axes_order += right
+
+        other_axes = set(axes) - set(axes_order)
+
+        axes_order = sorted(list(other_axes)) + axes_order
+
+        for axis in axes_order:
+            if "linecolor" not in self.layout[axis]:
+                continue
+            overlaying_axis = (
+                self.layout[axis]["_overlaying"]
+                if "overlaying" in self.layout[axis]
+                else ""
+            )
+            anchor_axis = (
+                "free"
+                if "anchor" not in self.layout[axis]
+                or self.layout[axis]["anchor"] == "free"
+                else (
+                    self.layout[axis]["anchor"][0]
+                    + "axis"
+                    + self.layout[axis]["anchor"][1:]
+                )
+            )
+            domain = (
+                self.layout[axis]["domain"]
+                if "overlaying" not in self.layout[axis] or overlaying_axis == ""
+                else self.layout[overlaying_axis]["domain"]
+            )
+            position = (
+                self.layout[overlaying_axis]["_position"]
+                if "autoshift" in self.layout[axis]
+                and self.layout[axis]["autoshift"]
+                and anchor_axis == "free"
+                else (
+                    self.layout[axis]["position"]
+                    if "anchor" not in self.layout[axis] or anchor_axis == "free"
+                    else (
+                        self.layout[anchor_axis]["domain"][0]
+                        if self.layout[axis]["side"] == "left"
+                        or self.layout[axis]["side"] == "bottom"
+                        else self.layout[anchor_axis]["domain"][-1]
+                    )
+                )
+            )
+            self.layout[axis]["_domain"] = domain
+            self.layout[axis]["_position"] = position
+
+            if "autoshift" in self.layout[axis] and self.layout[axis]["autoshift"]:
+                shift = (
+                    self.layout[axis]["shift"]
+                    if "shift" in self.layout[axis]
+                    else 3 if self.layout[axis]["side"] == "right" else -3
+                )
+                font_extra = 0
+                tickfont = update_dict(
+                    self.layout["font"], self.layout[axis]["tickfont"]
+                )
+                tickfont = parse_font(tickfont)
+                ctx = self.get_pango_context()
+                layout = Pango.Layout(ctx)
+                layout.set_font_description(tickfont)
+
+                metrics = ctx.get_metrics(tickfont)
+                font_height = (
+                    metrics.get_ascent() + metrics.get_descent()
+                ) / Pango.SCALE
+
+                for tick in self.layout[overlaying_axis]["_ticktext"]:
+                    layout.set_text(tick)
+                    font_extra = max(layout.get_pixel_size()[0], font_extra)
+                autoshift = (
+                    font_extra
+                    if self.layout[axis]["side"] == "right"
+                    else -font_extra
+                    - self.layout[axis]["title"]["standoff"]
+                    - font_height
+                ) + self.layout[overlaying_axis]["_shift"]
+            else:
+                shift = 0
+                autoshift = 0
+            self.layout[axis]["_shift"] = shift + autoshift
 
     @staticmethod
     def _detect_axis_type(data):

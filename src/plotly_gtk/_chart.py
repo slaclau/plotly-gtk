@@ -9,6 +9,7 @@ from plotly_gtk.utils import *  # pylint: disable=wildcard-import,unused-wildcar
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # pylint: disable=wrong-import-position,wrong-import-order
     Gtk,
+    Pango,
     PangoCairo,
 )
 
@@ -168,7 +169,6 @@ class _PlotlyGtk(Gtk.DrawingArea):
         if "tickfont" in self.layout[axis]:
             font_dict = update_dict(font_dict, self.layout[axis]["tickfont"])
 
-
         context.set_source_rgb(*parse_color(font_dict["color"]))
         font = parse_font(font_dict)
         layout = PangoCairo.create_layout(context)
@@ -187,7 +187,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
                 )
             else:
                 y_pos = self.layout["_margin"]["t"] + (
-                    1 - self.layout[axis]["position"]
+                    1 - self.layout[axis]["_position"]
                 ) * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
                 x_pos, _ = self._calc_pos(x, [], width, height, axis, None)
 
@@ -215,9 +215,17 @@ class _PlotlyGtk(Gtk.DrawingArea):
                 x_pos, y_pos = self._calc_pos(
                     x, y, width, height, xaxis, axis, ignore_log_x=True
                 )
+                x_pos += self.layout[axis]["_shift"]
             else:
-                x_pos = self.layout["_margin"]["l"] + self.layout[axis]["position"] * (
-                    width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]
+                x_pos = (
+                    self.layout["_margin"]["l"]
+                    + self.layout[axis]["_position"]
+                    * (
+                        width
+                        - self.layout["_margin"]["l"]
+                        - self.layout["_margin"]["r"]
+                    )
+                    + self.layout[axis]["_shift"]
                 )
                 _, y_pos = self._calc_pos([], y, width, height, None, axis)
 
@@ -244,40 +252,8 @@ class _PlotlyGtk(Gtk.DrawingArea):
             context.set_source_rgb(*parse_color("green"))
 
         axis_letter = axis[0 : axis.find("axis")]
-        overlaying_axis = (
-            (
-                self.layout[axis]["overlaying"][0]
-                + "axis"
-                + self.layout[axis]["overlaying"][1:]
-            )
-            if "overlaying" in self.layout[axis]
-            else ""
-        )
-        anchor_axis = (
-            "free"
-            if "anchor" not in self.layout[axis]
-            or self.layout[axis]["anchor"] == "free"
-            else (
-                self.layout[axis]["anchor"][0]
-                + "axis"
-                + self.layout[axis]["anchor"][1:]
-            )
-        )
-        domain = (
-            self.layout[axis]["domain"]
-            if "overlaying" not in self.layout[axis]
-            else self.layout[overlaying_axis]["domain"]
-        )
-        position = (
-            self.layout[axis]["position"]
-            if "anchor" not in self.layout[axis] or anchor_axis == "free"
-            else (
-                self.layout[anchor_axis]["domain"][0]
-                if self.layout[axis]["side"] == "left"
-                or self.layout[axis]["side"] == "bottom"
-                else self.layout[anchor_axis]["domain"][-1]
-            )
-        )
+        domain = self.layout[axis]["_domain"]
+        position = self.layout[axis]["_position"]
 
         if axis_letter == "x":
             context.move_to(
@@ -300,7 +276,8 @@ class _PlotlyGtk(Gtk.DrawingArea):
             context.move_to(
                 self.layout["_margin"]["l"]
                 + position
-                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
+                + self.layout[axis]["_shift"],
                 self.layout["_margin"]["t"]
                 + (1 - domain[0])
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
@@ -308,7 +285,8 @@ class _PlotlyGtk(Gtk.DrawingArea):
             context.line_to(
                 self.layout["_margin"]["l"]
                 + position
-                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"]),
+                * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
+                + self.layout[axis]["_shift"],
                 self.layout["_margin"]["t"]
                 + (1 - domain[-1])
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"]),
@@ -346,16 +324,7 @@ class _PlotlyGtk(Gtk.DrawingArea):
         y_pos = []
 
         if xaxis is not None:
-            x_overlaying_axis = (
-                (xaxis["overlaying"][0] + "axis" + xaxis["overlaying"][1:])
-                if "overlaying" in xaxis
-                else ""
-            )
-            xdomain = (
-                xaxis["domain"]
-                if "overlaying" not in xaxis
-                else self.layout[x_overlaying_axis]["domain"]
-            )
+            xdomain = xaxis["_domain"]
             xaxis_start = (
                 xdomain[0]
                 * (width - self.layout["_margin"]["l"] - self.layout["_margin"]["r"])
@@ -374,24 +343,15 @@ class _PlotlyGtk(Gtk.DrawingArea):
             ) + xaxis_start
 
         if yaxis is not None:
-            y_overlaying_axis = (
-                (yaxis["overlaying"][0] + "axis" + yaxis["overlaying"][1:])
-                if "overlaying" in yaxis
-                else ""
-            )
-            ydomain = (
-                yaxis["domain"]
-                if "overlaying" not in yaxis
-                else self.layout[y_overlaying_axis]["domain"]
-            )
+            ydomain = yaxis["_domain"]
             yaxis_start = (
-                -(ydomain[0])
+                -ydomain[0]
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
                 + height
                 - self.layout["_margin"]["b"]
             )
             yaxis_end = (
-                -(ydomain[-1])
+                -ydomain[-1]
                 * (height - self.layout["_margin"]["t"] - self.layout["_margin"]["b"])
                 + height
                 - self.layout["_margin"]["b"]
