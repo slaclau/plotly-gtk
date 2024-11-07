@@ -11,7 +11,7 @@ repos:
     - cz-trailers>=0.1.1
   - id: commitizen-branch
     stages:
-    - push
+    - pre-push
     additional_dependencies:
     - cz-trailers>=0.1.1
   repo: https://github.com/commitizen-tools/commitizen
