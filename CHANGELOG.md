@@ -1,3 +1,9 @@
+## 0.3.1 (2024-11-07)
+
+### Documentation
+
+- **README**: update [slaclau](seb.laclau@gmail.com) (86ffaff03fdbdcccce9d2145f739985ada370a98)
+
 ## 0.3.0 (2024-11-07)
 
 ### Features
