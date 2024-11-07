@@ -644,6 +644,8 @@ class PlotlyGtk(Gtk.Overlay):
                 left = [axis] + left
 
             for side in [left, right]:
+                if len(side) == 0:
+                    continue
                 self.layout[side[0]]["_overlaying"] = ""
                 for i in range(1, len(side)):
                     self.layout[side[i]]["_overlaying"] = side[i - 1]
