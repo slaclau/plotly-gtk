@@ -136,7 +136,9 @@ class Ticks:
             self.axis_layout["_ticktext"] = np.char.mod(
                 "%g", self.axis_layout["_tickvals"]
             )
-            self.axis_layout["_ticktext"] = [f"{Float(val):.3H}" for val in self.axis_layout["_tickvals"]]
+            self.axis_layout["_ticktext"] = [
+                f"{Float(val):%1000.3H}" for val in self.axis_layout["_tickvals"]
+            ]
         else:
             _text = []
             for _tick in self.axis_layout["_tickvals"]:
