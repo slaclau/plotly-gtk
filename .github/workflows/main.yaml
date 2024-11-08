@@ -79,7 +79,7 @@ jobs:
       - name: Get demo artifact
         uses: actions/download-artifact@v4
         with:
-          name: demo
+          name: demo-${{ github.sha }}
           path: sphinx/source/examples
       - name: Get report artifact
         uses: actions/download-artifact@v4
