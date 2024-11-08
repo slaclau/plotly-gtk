@@ -226,7 +226,7 @@ class Ticks:
     def array_ticks(self):
         vals = self.axis_layout["tickvals"]
         if self.axis_layout["_type"] == "log":
-            vals = np.log(vals)
+            vals = np.log10(vals)
         range = self.axis_layout["_range"]
         idx_min = np.argwhere(vals >= range[0])[0][0]
         idx_max = np.argwhere(vals <= range[1])[-1][0]
