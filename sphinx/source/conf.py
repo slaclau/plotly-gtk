@@ -95,4 +95,4 @@ with open(file, "a+", encoding="utf-8") as f:
             else:
                 f.write("   :end-before: elif\n\n")
 
-            f.write(f".. image:: examples/{demo}.png\n\n")
+            f.write(f".. image:: _images/{demo}.png\n\n")
