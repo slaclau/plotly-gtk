@@ -73,7 +73,7 @@ rtds_action_path = "examples"
 rtds_action_artifact_prefix = "demo-"
 
 # A GitHub personal access token is required, more info below
-rtds_action_github_token = os.environ["GITHUB_TOKEN"]
+rtds_action_github_token = os.environ.get("GITHUB_TOKEN", "")
 
 # Whether or not to raise an error on Read the Docs if the
 # artifact containing the notebooks can't be downloaded (optional)
