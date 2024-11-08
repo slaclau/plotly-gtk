@@ -29,6 +29,7 @@ extensions = [
     "sphinx.ext.graphviz",
     "sphinx_pyreverse",
     #    "numpydoc",
+    "rtds_action",
 ]
 
 autosummary_generate = True
@@ -60,6 +61,23 @@ inheritance_graph_attrs = dict(rankdir="TB", size='""')
 graphviz_output_format = "svg"
 
 sys.path.insert(0, os.path.abspath("../"))
+
+# The name of your GitHub repository
+rtds_action_github_repo = "slaclau/plotly-gtk"
+
+# The path where the artifact should be extracted
+# Note: this is relative to the conf.py file!
+rtds_action_path = "examples"
+
+# The "prefix" used in the `upload-artifact` step of the action
+rtds_action_artifact_prefix = "demo-"
+
+# A GitHub personal access token is required, more info below
+rtds_action_github_token = os.environ["GITHUB_TOKEN"]
+
+# Whether or not to raise an error on Read the Docs if the
+# artifact containing the notebooks can't be downloaded (optional)
+rtds_action_error_if_missing = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
