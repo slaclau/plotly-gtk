@@ -1,3 +1,9 @@
+## 0.3.2 (2024-11-08)
+
+### Fixes
+
+- **ticks**: fix to log array ticks not all displaying [slaclau](seb.laclau@gmail.com) (d173b3736863f99de6b1520ab12f970bc2b24da9)
+
 ## 0.3.1 (2024-11-07)
 
 ### Documentation
